@@ -1,11 +1,13 @@
 package com.acmeplex.acmeplex_backend.model;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 import java.time.LocalDate;
 
+@Entity
 public class Movie {
 
     @Id
@@ -17,6 +19,19 @@ public class Movie {
     private LocalDate releaseDate;
     private int duration; // in minutes
     private String genre;
+
+    // No-args constructor
+    public Movie() {}
+
+    // All-args constructor
+    public Movie(String name, String poster, String description, LocalDate releaseDate, int duration, String genre) {
+        this.name = name;
+        this.poster = poster;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.genre = genre;
+    }
 
     public Long getId() {
         return id;

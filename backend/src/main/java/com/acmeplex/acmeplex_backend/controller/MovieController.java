@@ -1,12 +1,11 @@
 package com.acmeplex.acmeplex_backend.controller;
 
+import com.acmeplex.acmeplex_backend.exception.MovieNotFoundException;
 import com.acmeplex.acmeplex_backend.model.Movie;
 import com.acmeplex.acmeplex_backend.repository.MovieRepository;
+import com.acmeplex.acmeplex_backend.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -15,17 +14,23 @@ import java.util.List;
 public class MovieController {
 
     @Autowired
-    private MovieRepository movieRepository;
+    private MovieService movieService;
 
     @GetMapping("/movies")
-    List<Movie> getAllUsers(){
-        return movieRepository.findAll();
+    List<Movie> getAllMovies(){
+        return movieService.getAllMovies();
     }
 
     @GetMapping("/movie/{id}")
-    Movie getUserById(@PathVariable Long id){
-        return movieRepository.findById(id)
-                .orElseThrow(()->new MovieNotFoundException(id));
+    Movie getMovieById(@PathVariable Long id){
+        return movieService.getMovieById(id);
+    }
+
+    // Endpoint to populate movies
+    @PostMapping("/populateMovies")
+    public String populateMovies() {
+        movieService.populateMovies();
+        return "Movies have been populated successfully!";
     }
 
 }
