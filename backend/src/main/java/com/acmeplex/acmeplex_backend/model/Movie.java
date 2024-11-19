@@ -1,11 +1,10 @@
 package com.acmeplex.acmeplex_backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Movie {
@@ -19,6 +18,14 @@ public class Movie {
     private LocalDate releaseDate;
     private int duration; // in minutes
     private String genre;
+
+    // Many-to-Many relationship with Theatre
+    @ManyToMany
+    @JoinTable(
+            name = "movie_theater",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "theater_id"))
+    private Set<Theatre> theatres = new HashSet<>();
 
     // No-args constructor
     public Movie() {}
@@ -87,5 +94,13 @@ public class Movie {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public Set<Theatre> getTheatres() {
+        return theatres;
+    }
+
+    public void setTheatres(Set<Theatre> theatres) {
+        this.theatres = theatres;
     }
 }
