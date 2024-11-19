@@ -1,9 +1,9 @@
 package com.acmeplex.acmeplex_backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Theatre {
@@ -12,6 +12,10 @@ public class Theatre {
     private Long id;
     private String name;
     private String address;
+
+    // Many-to-Many relationship with Movie
+    @ManyToMany(mappedBy = "theatres")
+    private Set<Movie> movies = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -35,5 +39,13 @@ public class Theatre {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public Set<Movie> getMovies() {
+        return movies;
+    }
+
+    public void setMovies(Set<Movie> movies) {
+        this.movies = movies;
     }
 }
