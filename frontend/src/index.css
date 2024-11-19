@@ -1,0 +1,38 @@
+@import "@fontsource/outfit/300.css";
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
+@import "@fontsource/outfit/600.css";
+@import "@fontsource/outfit/700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    @apply scroll-pt-20;
+  }
+
+  body {
+    @apply bg-black text-white antialiased font-sans;
+  }
+
+  /* Hide video controls on iOS */
+  video::-webkit-media-controls {
+    display: none !important;
+  }
+}
+
+@layer components {
+  .transition {
+    @apply duration-300 ease-in-out;
+  }
+}
+
+/* Custom styles for better mobile experience */
+/* @supports (-webkit-touch-callout: none) {
+  .min-h-[100svh] {
+    min-height: -webkit-fill-available;
+  }
+} */
