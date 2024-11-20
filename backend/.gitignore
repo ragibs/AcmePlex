@@ -1,3 +1,4 @@
 /.metadata/
-./src/main/resources/certs/
-../../../../target/classes/certs/
+private.pem
+public.pem
+
