@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -26,6 +27,9 @@ public class Movie {
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "theater_id"))
     private Set<Theatre> theatres = new HashSet<>();
+
+    @OneToMany(mappedBy = "movie")
+    private List<Showtime> showtimes;
 
     // No-args constructor
     public Movie() {}

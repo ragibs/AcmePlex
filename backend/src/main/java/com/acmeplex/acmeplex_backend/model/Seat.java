@@ -15,6 +15,10 @@ public class Seat {
     @OneToOne(mappedBy = "seat")
     private Ticket ticket;
 
+    @ManyToOne
+    @JoinColumn(name = "showtime_id")
+    private Showtime showtime;
+
     public Long getId() {
         return id;
     }

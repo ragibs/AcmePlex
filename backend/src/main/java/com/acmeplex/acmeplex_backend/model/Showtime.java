@@ -1,11 +1,9 @@
 package com.acmeplex.acmeplex_backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 public class Showtime {
@@ -15,6 +13,17 @@ public class Showtime {
     private Long id;
 
     private LocalDateTime startTime;
+
+    @ManyToOne
+    @JoinColumn(name = "movie_id")
+    private Movie movie;
+
+    @ManyToOne
+    @JoinColumn(name = "theater_id")
+    private Theatre theater;
+
+    @OneToMany(mappedBy = "showtime")
+    private List<Seat> seats;
 
     public Long getId() {
         return id;

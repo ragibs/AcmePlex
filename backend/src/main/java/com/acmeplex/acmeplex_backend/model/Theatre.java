@@ -3,6 +3,7 @@ package com.acmeplex.acmeplex_backend.model;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -16,6 +17,9 @@ public class Theatre {
     // Many-to-Many relationship with Movie
     @ManyToMany(mappedBy = "theatres")
     private Set<Movie> movies = new HashSet<>();
+
+    @OneToMany(mappedBy = "theater")
+    private List<Showtime> showtimes;
 
     public Long getId() {
         return id;
