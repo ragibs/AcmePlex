@@ -1,9 +1,6 @@
 package com.acmeplex.acmeplex_backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 public class Seat {
@@ -14,6 +11,9 @@ public class Seat {
     private String seatNumber;
 
     private boolean isBooked;
+
+    @OneToOne(mappedBy = "seat")
+    private Ticket ticket;
 
     public Long getId() {
         return id;
