@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "name": "rsa",
+      "type": "com.acmeplex.acmeplex_backend.config.RsaKeyProperties",
+      "sourceType": "com.acmeplex.acmeplex_backend.config.RsaKeyProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "rsa.private-key",
+      "type": "java.security.interfaces.RSAPrivateKey",
+      "sourceType": "com.acmeplex.acmeplex_backend.config.RsaKeyProperties"
+    },
+    {
+      "name": "rsa.public-key",
+      "type": "java.security.interfaces.RSAPublicKey",
+      "sourceType": "com.acmeplex.acmeplex_backend.config.RsaKeyProperties"
+    }
+  ],
+  "hints": []
+}
