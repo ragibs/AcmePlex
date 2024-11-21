@@ -107,4 +107,12 @@ public class Movie {
     public void setTheatres(Set<Theatre> theatres) {
         this.theatres = theatres;
     }
+
+    public List<Showtime> getShowtimes() {
+        return showtimes;
+    }
+
+    public void setShowtimes(List<Showtime> showtimes) {
+        this.showtimes = showtimes;
+    }
 }

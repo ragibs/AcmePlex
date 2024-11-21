@@ -40,4 +40,28 @@ public class Showtime {
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
+
+    public Movie getMovie() {
+        return movie;
+    }
+
+    public void setMovie(Movie movie) {
+        this.movie = movie;
+    }
+
+    public Theatre getTheater() {
+        return theater;
+    }
+
+    public void setTheater(Theatre theater) {
+        this.theater = theater;
+    }
+
+    public List<Seat> getSeats() {
+        return seats;
+    }
+
+    public void setSeats(List<Seat> seats) {
+        this.seats = seats;
+    }
 }
