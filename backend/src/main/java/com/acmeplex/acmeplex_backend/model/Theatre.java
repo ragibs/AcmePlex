@@ -14,10 +14,6 @@ public class Theatre {
     private String name;
     private String address;
 
-    // Many-to-Many relationship with Movie
-    @ManyToMany(mappedBy = "theatres")
-    private Set<Movie> movies = new HashSet<>();
-
     @OneToMany(mappedBy = "theater")
     private List<Showtime> showtimes;
 
@@ -45,13 +41,6 @@ public class Theatre {
         this.address = address;
     }
 
-    public Set<Movie> getMovies() {
-        return movies;
-    }
-
-    public void setMovies(Set<Movie> movies) {
-        this.movies = movies;
-    }
 
     public List<Showtime> getShowtimes() {
         return showtimes;

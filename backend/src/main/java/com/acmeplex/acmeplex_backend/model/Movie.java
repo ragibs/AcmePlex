@@ -20,29 +20,9 @@ public class Movie {
     private int duration; // in minutes
     private String genre;
 
-    // Many-to-Many relationship with Theatre
-    @ManyToMany
-    @JoinTable(
-            name = "movie_theater",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "theater_id"))
-    private Set<Theatre> theatres = new HashSet<>();
 
     @OneToMany(mappedBy = "movie")
     private List<Showtime> showtimes;
-
-    // No-args constructor
-    public Movie() {}
-
-    // All-args constructor
-    public Movie(String name, String poster, String description, LocalDate releaseDate, int duration, String genre) {
-        this.name = name;
-        this.poster = poster;
-        this.description = description;
-        this.releaseDate = releaseDate;
-        this.duration = duration;
-        this.genre = genre;
-    }
 
     public Long getId() {
         return id;
@@ -100,13 +80,6 @@ public class Movie {
         this.genre = genre;
     }
 
-    public Set<Theatre> getTheatres() {
-        return theatres;
-    }
-
-    public void setTheatres(Set<Theatre> theatres) {
-        this.theatres = theatres;
-    }
 
     public List<Showtime> getShowtimes() {
         return showtimes;

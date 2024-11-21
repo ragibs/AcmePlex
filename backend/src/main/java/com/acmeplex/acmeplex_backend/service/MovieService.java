@@ -31,12 +31,6 @@ public class MovieService {
                 .orElseThrow(() -> new MovieNotFoundException(id));
     }
 
-    // Get all theaters for a specific movie
-    public Set<Theatre> getTheatersForMovie(Long movieId) {
-        Movie movie = movieRepository.findById(movieId)
-                .orElseThrow(() -> new RuntimeException("Movie not found"));
-        return movie.getTheatres();
-    }
 
     // Get showtimes for movie
     public List<Showtime> getShowtimesForMovie(Long movieId) {
