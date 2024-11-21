@@ -2,6 +2,7 @@ package com.acmeplex.acmeplex_backend.controller;
 
 import com.acmeplex.acmeplex_backend.exception.MovieNotFoundException;
 import com.acmeplex.acmeplex_backend.model.Movie;
+import com.acmeplex.acmeplex_backend.model.Showtime;
 import com.acmeplex.acmeplex_backend.model.Theatre;
 import com.acmeplex.acmeplex_backend.repository.MovieRepository;
 import com.acmeplex.acmeplex_backend.service.MovieService;
@@ -29,17 +30,10 @@ public class MovieController {
         return movieService.getMovieById(id);
     }
 
-    @GetMapping("/movie/{movieId}/theaters")
-    public ResponseEntity<Set<Theatre>> getTheatersForMovie(@PathVariable Long movieId) {
-        Set<Theatre> theaters = movieService.getTheatersForMovie(movieId);
-        return ResponseEntity.ok(theaters);
-    }
-
-    // Endpoint to populate movies
-    @PostMapping("/populateMovies")
-    public String populateMovies() {
-        movieService.populateMovies();
-        return "Movies have been populated successfully!";
+    // Get Showtime by movie
+    @GetMapping("{movieId}/showtimes")
+    public List<Showtime> getShowtimeForMovie(@PathVariable Long movieId) {
+        return movieService.getShowtimesForMovie(movieId);
     }
 
 }
