@@ -2,8 +2,10 @@ package com.acmeplex.acmeplex_backend.service;
 
 import com.acmeplex.acmeplex_backend.exception.MovieNotFoundException;
 import com.acmeplex.acmeplex_backend.model.Movie;
+import com.acmeplex.acmeplex_backend.model.Showtime;
 import com.acmeplex.acmeplex_backend.model.Theatre;
 import com.acmeplex.acmeplex_backend.repository.MovieRepository;
+import com.acmeplex.acmeplex_backend.repository.ShowtimeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,9 @@ public class MovieService {
 
     @Autowired
     private MovieRepository movieRepository;
+
+    @Autowired
+    private ShowtimeRepository showtimeRepository;
 
     public List<Movie> getAllMovies() {
         return movieRepository.findAll();
@@ -33,24 +38,9 @@ public class MovieService {
         return movie.getTheatres();
     }
 
-    // Populate the movie table with some initial data
-    public void populateMovies() {
-        if (movieRepository.count() > 0) {
-            // Movies are already populated, so return
-            return;
-        }
-
-        // Placeholder URL for poster image (blank for now)
-        String placeholderPosterUrl = "https://via.placeholder.com/150";  // Placeholder image
-
-        Movie movie1 = new Movie("Inception", placeholderPosterUrl, "A mind-bending thriller by Christopher Nolan.", LocalDate.of(2010, 7, 16), 148, "Sci-Fi");
-        Movie movie2 = new Movie("The Dark Knight", placeholderPosterUrl, "Batman faces off against the Joker.", LocalDate.of(2008, 7, 18), 152, "Action");
-        Movie movie3 = new Movie("Titanic", placeholderPosterUrl, "A love story set aboard the ill-fated Titanic ship.", LocalDate.of(1997, 12, 19), 195, "Romance");
-        Movie movie4 = new Movie("The Matrix", placeholderPosterUrl, "A hacker discovers the truth about reality.", LocalDate.of(1999, 3, 31), 136, "Sci-Fi");
-        Movie movie5 = new Movie("The Godfather", placeholderPosterUrl, "The story of a powerful Italian-American crime family.", LocalDate.of(1972, 3, 24), 175, "Crime");
-
-        // Save movies to the repository
-        movieRepository.saveAll(List.of(movie1, movie2, movie3, movie4, movie5));
+    // Get showtimes for movie
+    public List<Showtime> getShowtimesForMovie(Long movieId) {
+        return showtimeRepository.findByMovieId(movieId);
     }
 
 }

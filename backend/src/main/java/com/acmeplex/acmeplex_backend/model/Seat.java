@@ -42,4 +42,20 @@ public class Seat {
     public void setBooked(boolean booked) {
         isBooked = booked;
     }
+
+    public Ticket getTicket() {
+        return ticket;
+    }
+
+    public void setTicket(Ticket ticket) {
+        this.ticket = ticket;
+    }
+
+    public Showtime getShowtime() {
+        return showtime;
+    }
+
+    public void setShowtime(Showtime showtime) {
+        this.showtime = showtime;
+    }
 }
