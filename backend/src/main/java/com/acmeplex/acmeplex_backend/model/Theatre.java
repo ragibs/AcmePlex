@@ -52,4 +52,12 @@ public class Theatre {
     public void setMovies(Set<Movie> movies) {
         this.movies = movies;
     }
+
+    public List<Showtime> getShowtimes() {
+        return showtimes;
+    }
+
+    public void setShowtimes(List<Showtime> showtimes) {
+        this.showtimes = showtimes;
+    }
 }
