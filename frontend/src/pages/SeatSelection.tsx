@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -7,10 +9,12 @@ import {
   Calendar,
   Clock,
   MapPin,
+  DollarSign,
 } from "lucide-react";
 
 const ROWS = "ABCDEFGHIJ".split("");
 const SEATS_PER_ROW = 10;
+const TICKET_PRICE = 10;
 
 // Mock data for movie information
 const movieInfo = {
@@ -28,9 +32,11 @@ const movieInfo = {
 export default function SeatSelection() {
   const [ticketCount, setTicketCount] = useState(0);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
     setSelectedSeats([]);
+    setTotalPrice(ticketCount * TICKET_PRICE);
   }, [ticketCount]);
 
   const containerVariants = {
@@ -104,7 +110,7 @@ export default function SeatSelection() {
           <motion.div className="md:w-1/3" variants={itemVariants}>
             <h2 className="text-2xl font-light mb-4">Select Tickets</h2>
             <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <span className="text-lg">Number of Tickets</span>
                 <div className="flex items-center gap-4">
                   <button
@@ -122,6 +128,13 @@ export default function SeatSelection() {
                   >
                     <Plus size={20} />
                   </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-lg">Total Price</span>
+                <div className="flex items-center text-2xl font-light">
+                  <DollarSign className="text-primary-500 mr-1" size={20} />
+                  {totalPrice.toFixed(2)}
                 </div>
               </div>
             </div>

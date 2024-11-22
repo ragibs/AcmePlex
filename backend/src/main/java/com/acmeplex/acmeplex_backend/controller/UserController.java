@@ -13,17 +13,5 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody User user){
-        userService.register(user.getEmail(), user.getPassword());
-        return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user){
-        String token = userService.login(user.getEmail(), user.getPassword());
-        return  new ResponseEntity<>(token, HttpStatus.OK);
-    }
-
 
 }
