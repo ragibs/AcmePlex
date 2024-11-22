@@ -1,5 +1,7 @@
 package com.acmeplex.acmeplex_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -14,13 +16,15 @@ public class Showtime {
 
     private LocalDateTime startTime;
 
+    @JsonBackReference // This will prevent the movie from being serialized within Showtime
     @ManyToOne
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
+    @JsonBackReference // This will prevent the movie from being serialized within Showtime
     @ManyToOne
-    @JoinColumn(name = "theater_id")
-    private Theatre theater;
+    @JoinColumn(name = "theatre_id")
+    private Theatre theatre;
 
     @OneToMany(mappedBy = "showtime")
     private List<Seat> seats;
@@ -49,12 +53,12 @@ public class Showtime {
         this.movie = movie;
     }
 
-    public Theatre getTheater() {
-        return theater;
+    public Theatre getTheatre() {
+        return theatre;
     }
 
-    public void setTheater(Theatre theater) {
-        this.theater = theater;
+    public void setTheatre(Theatre theatre) {
+        this.theatre = theatre;
     }
 
     public List<Seat> getSeats() {

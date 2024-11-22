@@ -22,6 +22,7 @@ public class MovieService {
     @Autowired
     private ShowtimeRepository showtimeRepository;
 
+
     public List<Movie> getAllMovies() {
         return movieRepository.findAll();
     }
@@ -29,12 +30,6 @@ public class MovieService {
     public Movie getMovieById(Long id) {
         return movieRepository.findById(id)
                 .orElseThrow(() -> new MovieNotFoundException(id));
-    }
-
-
-    // Get showtimes for movie
-    public List<Showtime> getShowtimesForMovie(Long movieId) {
-        return showtimeRepository.findByMovieId(movieId);
     }
 
 }
