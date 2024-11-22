@@ -8,8 +8,11 @@ import java.security.Principal;
 @RestController
 public class HomeController {
 
-    @GetMapping
-    public String home(Principal principal){
-        return "JWT " + principal.getName();
+    @GetMapping("/")
+    public String home(){
+        return "JWT ";
     }
+
+    @GetMapping("/home")
+    public String lockedHome() {return "JWT after using token auth";}
 }
