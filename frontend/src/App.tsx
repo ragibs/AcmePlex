@@ -2,8 +2,12 @@ import { Home } from "./pages/Home";
 import SearchByMovie from "./pages/SearchByMovie";
 import SearchByTheatre from "./pages/SeachByTheatre";
 import SeatSelection from "./pages/SeatSelection";
+import GetReservation from "./pages/GetReservation";
 import ManageReservation from "./pages/ManageReservation";
-
+import Admin from "./pages/Admin";
+import ConfirmTickets from "./pages/ConfirmTickets";
+import Register from "./pages/Register";
+import SignedInPurchase from "./pages/SignedInPurchase";
 import { Routes, Route } from "react-router-dom";
 
 function App() {
@@ -13,7 +17,12 @@ function App() {
       <Route path="/searchbymovie" element={<SearchByMovie />} />
       <Route path="/searchbytheatre" element={<SearchByTheatre />} />
       <Route path="/seatselection" element={<SeatSelection />} />
+      <Route path="/getReservation" element={<GetReservation />} />
       <Route path="/managereservation" element={<ManageReservation />} />
+      <Route path="/admin" element={<Admin />} />
+      <Route path="/confirmtickets" element={<ConfirmTickets />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/signedinpurchase" element={<SignedInPurchase />} />
     </Routes>
   );
 }
