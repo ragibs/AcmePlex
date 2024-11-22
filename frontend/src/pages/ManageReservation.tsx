@@ -1,6 +1,15 @@
+"use client";
+
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, X } from "lucide-react";
+import { Calendar, Clock, MapPin, X, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+
+// Mock user data
+const user = {
+  email: "john.doe@example.com",
+  isRegistered: true,
+};
+
 const reservations = [
   {
     id: 1,
@@ -78,12 +87,24 @@ export default function ManageReservation() {
       </Link>
 
       <div className="max-w-7xl mx-auto">
-        <motion.h1
-          className="text-4xl font-light mb-8 text-center"
+        <motion.div
+          className="flex flex-col sm:flex-row justify-between items-center mb-8"
           variants={itemVariants}
         >
-          Your Reservations
-        </motion.h1>
+          <h1 className="text-4xl font-light text-center sm:text-left">
+            Your Reservations
+          </h1>
+          <div className="mt-4 sm:mt-0 flex items-center">
+            <span className="mr-2">{user.email}</span>
+            <span
+              className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                user.isRegistered ? "bg-green-500" : "bg-yellow-500"
+              }`}
+            >
+              {user.isRegistered ? "Registered" : "Guest"}
+            </span>
+          </div>
+        </motion.div>
 
         <motion.div className="space-y-6" variants={itemVariants}>
           {reservations.map((reservation) => (
@@ -96,8 +117,7 @@ export default function ManageReservation() {
                   <img
                     src={reservation.poster}
                     alt={`${reservation.movieTitle} poster`}
-                    width="100"
-                    height="150"
+                    style={{ width: "100px", height: "150px" }}
                     className="rounded-lg shadow-md"
                   />
                 </div>
