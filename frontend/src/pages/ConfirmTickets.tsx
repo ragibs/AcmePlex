@@ -10,8 +10,10 @@ import {
   Mail,
   User,
   Lock,
+  Tag,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+
 // Mock data for selected movie and showtime
 const selectedMovie = {
   title: "Inception",
@@ -34,6 +36,11 @@ export default function ConfirmTickets() {
   const [cardCCV, setCardCCV] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    value: number;
+  } | null>(null);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -58,6 +65,20 @@ export default function ConfirmTickets() {
     console.log("Form submitted");
   };
 
+  const applyCoupon = () => {
+    // Mock coupon validation logic
+    if (couponCode === "DISCOUNT10") {
+      setAppliedCoupon({ code: couponCode, value: 10 });
+    } else {
+      alert("Invalid coupon code");
+    }
+    setCouponCode("");
+  };
+
+  const totalAfterDiscount = appliedCoupon
+    ? Math.max(selectedMovie.totalPrice - appliedCoupon.value, 0)
+    : selectedMovie.totalPrice;
+
   return (
     <motion.div
       className="min-h-screen bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8"
@@ -80,8 +101,7 @@ export default function ConfirmTickets() {
               <img
                 src={selectedMovie.poster}
                 alt={selectedMovie.title}
-                width="200"
-                height="300"
+                style={{ width: "200px", height: "300px" }}
                 className="mx-auto mb-4 rounded-lg"
               />
               <h2 className="text-2xl font-medium mb-4">
@@ -107,6 +127,15 @@ export default function ConfirmTickets() {
                 <div>
                   <span className="font-medium">Total Price:</span> $
                   {selectedMovie.totalPrice.toFixed(2)}
+                </div>
+                {appliedCoupon && (
+                  <div className="text-primary-400">
+                    <span className="font-medium">Discount:</span> -$
+                    {appliedCoupon.value.toFixed(2)}
+                  </div>
+                )}
+                <div className="text-xl font-bold">
+                  <span>Final Price:</span> ${totalAfterDiscount.toFixed(2)}
                 </div>
               </div>
             </div>
@@ -291,6 +320,43 @@ export default function ConfirmTickets() {
                     </div>
                   </>
                 )}
+                <div className="mb-6">
+                  <label
+                    htmlFor="couponCode"
+                    className="block text-sm font-medium mb-2"
+                  >
+                    Coupon Code
+                  </label>
+                  <div className="flex space-x-2">
+                    <div className="relative flex-grow">
+                      <input
+                        type="text"
+                        id="couponCode"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                        placeholder="Enter coupon code"
+                      />
+                      <Tag
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={applyCoupon}
+                      className="bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {appliedCoupon && (
+                    <p className="mt-2 text-sm text-primary-400">
+                      Coupon {appliedCoupon.code} applied: $
+                      {appliedCoupon.value} off
+                    </p>
+                  )}
+                </div>
                 <button
                   type="submit"
                   className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"

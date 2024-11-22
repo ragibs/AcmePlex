@@ -1,8 +1,17 @@
 import React, { useState } from "react";
 import { Search, Calendar } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 export default function SearchBar() {
   const [searchType, setSearchType] = useState<"movie" | "theater">("movie");
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    if (searchType === "movie") {
+      navigate("/searchbymovie");
+    } else {
+      navigate("/searchbytheatre");
+    }
+  };
 
   return (
     <div className="w-full max-w-3xl bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/20">
@@ -60,8 +69,10 @@ export default function SearchBar() {
           />
         </div>
 
-        {/* Search Button */}
-        <button className="h-12 px-8 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors">
+        <button
+          onClick={handleSearch}
+          className="h-12 px-8 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors"
+        >
           Search
         </button>
       </div>

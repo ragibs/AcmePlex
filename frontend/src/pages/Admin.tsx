@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Mail, Lock, Send, X, Check } from "lucide-react";
 
 export default function Component() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [broadcastMessage, setBroadcastMessage] = useState("");
