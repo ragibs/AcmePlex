@@ -1,5 +1,7 @@
 package com.acmeplex.acmeplex_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -14,11 +16,9 @@ public class Theatre {
     private String name;
     private String address;
 
-    // Many-to-Many relationship with Movie
-    @ManyToMany(mappedBy = "theatres")
-    private Set<Movie> movies = new HashSet<>();
-
-    @OneToMany(mappedBy = "theater")
+//    @JsonManagedReference  // This will serialize the list of showtimes for the movie
+    @JsonBackReference // This will prevent the movie from being serialized
+    @OneToMany(mappedBy = "theatre")
     private List<Showtime> showtimes;
 
     public Long getId() {
@@ -45,13 +45,6 @@ public class Theatre {
         this.address = address;
     }
 
-    public Set<Movie> getMovies() {
-        return movies;
-    }
-
-    public void setMovies(Set<Movie> movies) {
-        this.movies = movies;
-    }
 
     public List<Showtime> getShowtimes() {
         return showtimes;
