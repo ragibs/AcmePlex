@@ -1,5 +1,7 @@
 package com.acmeplex.acmeplex_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -20,7 +22,8 @@ public class Movie {
     private int duration; // in minutes
     private String genre;
 
-
+//    @JsonManagedReference  // This will serialize the list of showtimes for the movie
+    @JsonBackReference // This will prevent the movie from being serialized
     @OneToMany(mappedBy = "movie")
     private List<Showtime> showtimes;
 
