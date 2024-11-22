@@ -6,11 +6,13 @@ import com.acmeplex.acmeplex_backend.model.Showtime;
 import com.acmeplex.acmeplex_backend.model.Theatre;
 import com.acmeplex.acmeplex_backend.repository.MovieRepository;
 import com.acmeplex.acmeplex_backend.service.MovieService;
+import com.acmeplex.acmeplex_backend.service.ShowtimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -19,6 +21,9 @@ public class MovieController {
 
     @Autowired
     private MovieService movieService;
+
+    @Autowired
+    private ShowtimeService showtimeService;
 
     @GetMapping("/movies")
     List<Movie> getAllMovies(){
@@ -32,8 +37,8 @@ public class MovieController {
 
     // Get Showtime by movie
     @GetMapping("{movieId}/showtimes")
-    public List<Showtime> getShowtimeForMovie(@PathVariable Long movieId) {
-        return movieService.getShowtimesForMovie(movieId);
+    public List<Map<String, Object>> getShowtimesForMovie(@PathVariable Long movieId) {
+        return showtimeService.getShowtimesForMovie(movieId);
     }
 
 }
