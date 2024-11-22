@@ -11,6 +11,7 @@ import {
   User,
   ChevronDown,
   ChevronUp,
+  Tag,
 } from "lucide-react";
 
 // Mock data for selected movie and showtime
@@ -36,6 +37,11 @@ export default function SignedInPurchase() {
   const [newCardNumber, setNewCardNumber] = useState("");
   const [newCardExpiry, setNewCardExpiry] = useState("");
   const [newCardCCV, setNewCardCCV] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    value: number;
+  } | null>(null);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -63,6 +69,20 @@ export default function SignedInPurchase() {
   const togglePaymentMethod = () => {
     setUseSavedPayment(!useSavedPayment);
   };
+
+  const applyCoupon = () => {
+    // Mock coupon validation logic
+    if (couponCode === "DISCOUNT10") {
+      setAppliedCoupon({ code: couponCode, value: 10 });
+    } else {
+      alert("Invalid coupon code");
+    }
+    setCouponCode("");
+  };
+
+  const totalAfterDiscount = appliedCoupon
+    ? Math.max(selectedMovie.totalPrice - appliedCoupon.value, 0)
+    : selectedMovie.totalPrice;
 
   return (
     <motion.div
@@ -113,6 +133,15 @@ export default function SignedInPurchase() {
                 <div>
                   <span className="font-medium">Total Price:</span> $
                   {selectedMovie.totalPrice.toFixed(2)}
+                </div>
+                {appliedCoupon && (
+                  <div className="text-primary-400">
+                    <span className="font-medium">Discount:</span> -$
+                    {appliedCoupon.value.toFixed(2)}
+                  </div>
+                )}
+                <div className="text-xl font-bold">
+                  <span>Final Price:</span> ${totalAfterDiscount.toFixed(2)}
                 </div>
               </div>
             </div>
@@ -281,6 +310,44 @@ export default function SignedInPurchase() {
                       />
                     </div>
                   </div>
+                </div>
+
+                <div className="mb-6">
+                  <label
+                    htmlFor="couponCode"
+                    className="block text-sm font-medium mb-2"
+                  >
+                    Coupon Code
+                  </label>
+                  <div className="flex space-x-2">
+                    <div className="relative flex-grow">
+                      <input
+                        type="text"
+                        id="couponCode"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                        placeholder="Enter coupon code"
+                      />
+                      <Tag
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={applyCoupon}
+                      className="bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {appliedCoupon && (
+                    <p className="mt-2 text-sm text-primary-400">
+                      Coupon {appliedCoupon.code} applied: $
+                      {appliedCoupon.value} off
+                    </p>
+                  )}
                 </div>
 
                 <button
