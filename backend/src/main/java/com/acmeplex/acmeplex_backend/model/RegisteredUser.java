@@ -13,9 +13,6 @@ public class RegisteredUser extends User {
     private String email;
 
     @NotNull
-    private String address;
-
-    @NotNull
     private String name;
 
     public String getPassword() {
@@ -24,14 +21,6 @@ public class RegisteredUser extends User {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public String getName() {

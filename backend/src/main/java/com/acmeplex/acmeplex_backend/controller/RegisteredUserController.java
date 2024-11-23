@@ -22,7 +22,6 @@ public class RegisteredUserController {
         registeredUserService.registerRegisteredUser(
                 registeredUser.getEmail(),
                 registeredUser.getPassword(),
-                registeredUser.getAddress(),
                 registeredUser.getName());
         return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
     }
