@@ -30,4 +30,12 @@ public class GlobalExceptionHandler {
         return errorMap;
     }
 
+    @ResponseBody
+    @ExceptionHandler(ShowtimeNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleShowtimeNotFoundException(ShowtimeNotFoundException ex) {
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("errorMessage", ex.getMessage());
+        return errorMap;
+    }
 }
