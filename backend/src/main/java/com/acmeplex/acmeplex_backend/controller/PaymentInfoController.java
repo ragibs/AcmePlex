@@ -5,10 +5,12 @@ import com.acmeplex.acmeplex_backend.service.PaymentInfoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("/payment")
 public class PaymentInfoController {
     private final PaymentInfoService paymentInfoService;
 
@@ -16,20 +18,41 @@ public class PaymentInfoController {
         this.paymentInfoService = paymentInfoService;
     }
 
-    @PostMapping
-    public ResponseEntity<PaymentInfo> createPayment(@RequestBody PaymentInfo paymentInfo) {
+    @PostMapping("/save")
+    public ResponseEntity<String> createPayment(@RequestBody PaymentInfo paymentInfo) {
+        Optional<PaymentInfo> oldPaymentMethod = paymentInfoService.getPaymentByEmail(
+                paymentInfo.getRegisteredUser().getEmail());
+        if (oldPaymentMethod.isPresent()){
+            return ResponseEntity.status(409).body("This user already has payment information please use the update endpoint");
+        }
         PaymentInfo savedPayment = paymentInfoService.createPayment(paymentInfo);
-        return ResponseEntity.ok(savedPayment);
+        return ResponseEntity.status(200).body("Payment information saved sucessfully");
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<PaymentInfo> getPaymentByUserId(@PathVariable Long userId) {
-        Optional<PaymentInfo> payment = paymentInfoService.getPaymentByUserId(userId);
+    @PutMapping("/update")
+    public ResponseEntity<String> updatePayment(@RequestBody PaymentInfo paymentInfo){
+        Optional<PaymentInfo> oldPaymentMethod = paymentInfoService.getPaymentByEmail(
+                paymentInfo.getRegisteredUser().getEmail());
+        if (oldPaymentMethod.isEmpty()){
+            return ResponseEntity.status(404).body("This user does not currently have a payment method");
+        }
 
+        paymentInfoService.updatePayment(oldPaymentMethod.get(), paymentInfo);
+        return ResponseEntity.status(200).body("Payment information updated sucessfully");
+    }
+
+    @GetMapping("/{email}")
+    public ResponseEntity<Map<String, String>> getPaymentInfo(@PathVariable String email) {
+        Optional<PaymentInfo> payment = paymentInfoService.getPaymentByEmail(email);
         if (payment.isPresent()) {
-            return ResponseEntity.ok(payment.get());
+            Map<String, String> paymentInfoJSON = new HashMap<>();
+            paymentInfoJSON.put("cardNumber", payment.get().getCardNumber());
+            paymentInfoJSON.put("cardHolder", payment.get().getCardHolder());
+            paymentInfoJSON.put("expiryDate", payment.get().getExpiryDate());
+            paymentInfoJSON.put("cvv", payment.get().getCvv());
+            return ResponseEntity.status(200).body(paymentInfoJSON);
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(404).body(null);
         }
     }
 }

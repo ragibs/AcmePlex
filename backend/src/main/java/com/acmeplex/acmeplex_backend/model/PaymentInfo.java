@@ -18,8 +18,9 @@ public class PaymentInfo {
     private String cardHolder;
 
     @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "registered_user_id", nullable = false)
+    private RegisteredUser registeredUser;
+
     public Long getID() {
         return ID;
     }
@@ -60,15 +61,11 @@ public class PaymentInfo {
         this.cardHolder = cardHolder;
     }
 
-    public User getUser() {
-        return user;
+    public RegisteredUser getRegisteredUser() {
+        return registeredUser;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setRegisteredUser(RegisteredUser registeredUser) {
+        this.registeredUser = registeredUser;
     }
-
-//    public Long getUserID(){
-//        return user.getId();
-//    }
 }

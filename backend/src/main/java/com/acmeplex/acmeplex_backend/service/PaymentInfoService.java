@@ -6,6 +6,7 @@ import com.acmeplex.acmeplex_backend.model.User;
 import com.acmeplex.acmeplex_backend.repository.PaymentInfoRepository;
 import com.acmeplex.acmeplex_backend.repository.RegisteredUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -23,24 +24,40 @@ public class PaymentInfoService {
 
 
 
-    public PaymentInfo createPayment(PaymentInfo payment) {
-        PaymentInfo pi = new PaymentInfo();
+//    public PaymentInfo createPayment(PaymentInfo paymentInfo) {
+//        PaymentInfo paymentObject = new PaymentInfo();
+//
+////        Optional<User> user = userRepository.findById(payment.getUser().getId());
+//
+////        Optional<User> registeredUser = registeredUserRepository.findById(payment.getUserID());
+//        paymentObject.setCardHolder(paymentInfo.getCardHolder());
+//        paymentObject.setCvv(paymentInfo.getCvv());
+//        paymentObject.setCardNumber(paymentInfo.getCardNumber());
+//        paymentObject.setExpiryDate(paymentInfo.getExpiryDate());
+//
+//        paymentObject.setRegisteredUser(paymentInfo.getRegisteredUser());
+//
+//        return paymentInfoRepository.save(paymentObject);
+//    }
 
-//        Optional<User> user = userRepository.findById(payment.getUser().getId());
-
-//        Optional<User> registeredUser = registeredUserRepository.findById(payment.getUserID());
-        pi.setCardHolder(payment.getCardHolder());
-        pi.setCvv(payment.getCvv());
-        pi.setCardNumber(payment.getCardNumber());
-        pi.setExpiryDate(payment.getExpiryDate());
-
-        pi.setUser(payment.getUser());
-
-        return paymentInfoRepository.save(pi);
+    public PaymentInfo createPayment(PaymentInfo paymentInfo) {
+        String email = paymentInfo.getRegisteredUser().getEmail();
+        RegisteredUser registeredUser = registeredUserRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("There is no registered user with that email address"));
+        paymentInfo.setRegisteredUser(registeredUser);
+        return paymentInfoRepository.save(paymentInfo);
     }
 
-    public Optional<PaymentInfo> getPaymentByUserId(Long userId) {
-        return paymentInfoRepository.findByUserId(userId);
+    public void updatePayment(PaymentInfo oldPayment, PaymentInfo newPayment){
+        oldPayment.setCardNumber(newPayment.getCardNumber());
+        oldPayment.setCardHolder(newPayment.getCardHolder());
+        oldPayment.setExpiryDate(newPayment.getExpiryDate());
+        oldPayment.setCvv(newPayment.getCvv());
+        paymentInfoRepository.save(oldPayment);
+    }
+
+    public Optional<PaymentInfo> getPaymentByEmail(String email) {
+        return paymentInfoRepository.findByRegisteredUser_Email(email);
 
     }
 
