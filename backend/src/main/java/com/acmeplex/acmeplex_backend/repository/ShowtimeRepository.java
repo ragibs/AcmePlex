@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ShowtimeRepository extends JpaRepository<Showtime, Long> {
     List<Showtime> findByMovieId(Long movieId);
+    List<Showtime> findByTheatreId(Long theatreId);
 }

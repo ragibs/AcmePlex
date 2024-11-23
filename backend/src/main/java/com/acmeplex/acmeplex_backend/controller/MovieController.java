@@ -36,7 +36,7 @@ public class MovieController {
     }
 
     // Get Showtime by movie
-    @GetMapping("{movieId}/showtimes")
+    @GetMapping("/movie/{movieId}/showtimes")
     public List<Map<String, Object>> getShowtimesForMovie(@PathVariable Long movieId) {
         return showtimeService.getShowtimesForMovie(movieId);
     }
