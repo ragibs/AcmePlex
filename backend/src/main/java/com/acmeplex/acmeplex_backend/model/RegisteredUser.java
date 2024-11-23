@@ -8,10 +8,6 @@ import org.antlr.v4.runtime.misc.NotNull;
 //@PrimaryKeyJoinColumn(name = "user_id")
 public class RegisteredUser extends User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String password;
 
     private String email;
@@ -21,16 +17,6 @@ public class RegisteredUser extends User {
 
     @NotNull
     private String name;
-
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getPassword() {
         return password;
