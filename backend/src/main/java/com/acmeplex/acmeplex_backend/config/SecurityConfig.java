@@ -1,5 +1,6 @@
 package com.acmeplex.acmeplex_backend.config;
 
+import com.acmeplex.acmeplex_backend.service.RegisteredUserService;
 import com.acmeplex.acmeplex_backend.service.UserService;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -29,15 +30,15 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final RsaKeyProperties rsaKeys;
-// Look at the new version below
+    // Look at the new version below
     public SecurityConfig(RsaKeyProperties rsaKeys) {
         this.rsaKeys = rsaKeys;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(UserService userService, PasswordEncoder passwordEncoder){
+    public AuthenticationManager authenticationManager(RegisteredUserService registeredUserService, PasswordEncoder passwordEncoder){
         var authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userService);
+        authenticationProvider.setUserDetailsService(registeredUserService);
         authenticationProvider.setPasswordEncoder(passwordEncoder);
         return new ProviderManager(authenticationProvider);
     }
