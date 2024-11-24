@@ -115,12 +115,23 @@ public class DataPopulationTest {
     }
 
     private void createSeatsForShowtime(Showtime showtime, int seatCount) {
+        int seatsPerRow = 10; // Number of seats per row
+        char currentRow = 'A'; // Starting row letter
+
         for (int i = 1; i <= seatCount; i++) {
+            // Generate seat number in the format "A1", "A2", ..., "B1", etc.
+            String seatNumber = currentRow + String.valueOf((i - 1) % seatsPerRow + 1);
+
             Seat seat = new Seat();
-            seat.setSeatNumber("Seat " + i);
-            seat.setBooked(false); // Assuming seats are initially available
+            seat.setSeatNumber(seatNumber);
+            seat.setBooked(false); // Initially all seats are available
             seat.setShowtime(showtime);
             seatRepository.save(seat);
+
+            // Move to the next row after seatsPerRow
+            if (i % seatsPerRow == 0) {
+                currentRow++;
+            }
         }
     }
 }

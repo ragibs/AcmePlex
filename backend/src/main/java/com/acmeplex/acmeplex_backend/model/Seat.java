@@ -14,6 +14,7 @@ public class Seat {
     private boolean isBooked;
 
     @OneToOne(mappedBy = "seat")
+    @JsonBackReference
     private Ticket ticket;
 
     @ManyToOne
