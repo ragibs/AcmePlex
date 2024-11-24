@@ -48,7 +48,7 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/home").authenticated()
+                        .requestMatchers("/home", "/payment/**").authenticated()
                         .anyRequest().permitAll())  // Allow all other requests
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.decoder(jwtDecoder())))
