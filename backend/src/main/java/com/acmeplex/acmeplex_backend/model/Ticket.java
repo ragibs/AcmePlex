@@ -24,6 +24,8 @@ public class Ticket {
     @JoinColumn(name = "reservation_id", nullable = false)
     private Reservation reservation;
 
+    private TicketStatus status;
+
     public Long getId() {
         return id;
     }
@@ -62,5 +64,14 @@ public class Ticket {
 
     public void setReservation(Reservation reservation) {
         this.reservation = reservation;
+    }
+
+
+    public TicketStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TicketStatus status) {
+        this.status = status;
     }
 }
