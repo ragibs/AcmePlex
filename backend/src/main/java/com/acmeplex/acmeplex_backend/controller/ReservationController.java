@@ -7,18 +7,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/reservations")
+@RequestMapping("/reservation")
 @CrossOrigin(origins = {"http://localhost:3000", "https://acme-plex.vercel.app/"})
 public class ReservationController {
     @Autowired
     public ReservationService reservationService;
-
-    public ReservationController(ReservationService reservationService){
-        this.reservationService = reservationService;
-    }
 
     @PostMapping
     public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation){
@@ -45,6 +42,12 @@ public class ReservationController {
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
         reservationService.deleteReservation(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createReservation(Long showtimeID, List<Long> seatIDS, String userEmail, String paymentConfirmation){
+        reservationService.createReservation(showtimeID, seatIDS, userEmail, paymentConfirmation);
+        return new ResponseEntity<>("Reservation created successfully", HttpStatus.CREATED);
     }
 
 

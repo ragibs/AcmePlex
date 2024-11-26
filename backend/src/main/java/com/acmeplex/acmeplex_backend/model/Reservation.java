@@ -17,6 +17,8 @@ public class Reservation {
 
     private String status; // ACTIVE, CANCELLED, COMPLETED
 
+    private String paymentConfirmation;
+
     // Many-to-One relationship with User
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -64,5 +66,13 @@ public class Reservation {
 
     public void setTickets(Set<Ticket> tickets) {
         this.tickets = tickets;
+    }
+
+    public String getPaymentConfirmation() {
+        return paymentConfirmation;
+    }
+
+    public void setPaymentConfirmation(String paymentConfirmation) {
+        this.paymentConfirmation = paymentConfirmation;
     }
 }

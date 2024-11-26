@@ -28,12 +28,12 @@ public class TicketService {
     }
 
 
-    public Ticket createTicket(Ticket ticket){
-        Showtime showtime = showtimeRepository.findById(ticket.getShowtime().getId())
+    public void createTicket(Long showtimeID, Long seatID, Long reservationID){
+        Showtime showtime = showtimeRepository.findById(showtimeID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid showtime ID"));
-        Seat seat = seatRepository.findById(ticket.getShowtime().getId())
+        Seat seat = seatRepository.findById(seatID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Seat ID"));
-        Reservation reservation = reservationRepository.findById(ticket.getReservation().getId())
+        Reservation reservation = reservationRepository.findById(reservationID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid reservation ID"));
         if (seat.isBooked()){
             throw new IllegalArgumentException("This seat has already been booked");
@@ -43,12 +43,11 @@ public class TicketService {
         seatRepository.save(seat);
         Ticket createdTicket = new Ticket();
         createdTicket.setStatus(TicketStatus.active);
-        createdTicket.setPrice(ticket.getPrice());
+        createdTicket.setPrice(10);
         createdTicket.setShowtime(showtime);
         createdTicket.setSeat(seat);
         createdTicket.setReservation(reservation);
-
-        return ticketRepository.save(createdTicket);
+        ticketRepository.save(createdTicket);
     }
 
     public void updateStatus(Long ticketID, String updatedStatus){

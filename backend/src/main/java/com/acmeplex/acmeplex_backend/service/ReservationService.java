@@ -1,10 +1,13 @@
 package com.acmeplex.acmeplex_backend.service;
 
 import com.acmeplex.acmeplex_backend.model.Reservation;
+import com.acmeplex.acmeplex_backend.model.User;
 import com.acmeplex.acmeplex_backend.repository.ReservationRepository;
+import com.acmeplex.acmeplex_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,14 +16,18 @@ public class ReservationService{
 
     @Autowired
     private ReservationRepository reservationRepository;
+    @Autowired
+    TicketService ticketService;
+    @Autowired
+    UserService userService;
 
     public ReservationService(ReservationRepository reservationRepository){
         this.reservationRepository = reservationRepository;
     }
 
-    public Reservation createReservation(Reservation res){
-        return reservationRepository.save(res);
-    }
+//    public Reservation createReservation(Reservation res){
+//        return reservationRepository.save(res);
+//    }
 
     public Optional<Reservation> getReservationById(long Id){
         return reservationRepository.findById(Id);
@@ -44,5 +51,20 @@ public class ReservationService{
 
     public void deleteReservation(Long id){
         reservationRepository.deleteById(id);
+    }
+
+
+    public void createReservation(Long showtimeID, List<Long> seatIDS, String userEmail, String paymentConfirmation){
+        if (!userService.userExists(userEmail)){
+            userService.registerUser(userEmail);
+        }
+        Reservation reservation = new Reservation();
+        reservation.setStatus("ACTIVE");
+        reservation.setUser(userService.getUser(userEmail));
+        reservation.setPaymentConfirmation(paymentConfirmation);
+        reservation.setReservationDate(LocalDateTime.now());
+        for (Long seatID: seatIDS){
+            ticketService.createTicket(showtimeID, seatID, reservation.getId());
+        }
     }
 }
