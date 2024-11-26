@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 @RestController
-@CrossOrigin("http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "https://acme-plex.vercel.app/"})
 public class MovieController {
 
     @Autowired

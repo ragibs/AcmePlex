@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/reservations")
-@CrossOrigin("http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "https://acme-plex.vercel.app/"})
 public class ReservationController {
     @Autowired
     public ReservationService reservationService;

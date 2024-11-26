@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
+@CrossOrigin(origins = {"http://localhost:3000", "https://acme-plex.vercel.app/"})
 @RequestMapping("/payment")
 public class PaymentInfoController {
     private final PaymentInfoService paymentInfoService;

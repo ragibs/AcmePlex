@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.Optional;
 
 @RestController
-@CrossOrigin("http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "https://acme-plex.vercel.app/"})
 public class UserController {
     @Autowired
     private UserService userService;
