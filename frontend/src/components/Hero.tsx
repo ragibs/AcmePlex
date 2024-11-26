@@ -1,6 +1,12 @@
 import SearchBar from "./SearchBar";
+import { Movie, Theatre } from "../types";
 
-export default function Hero() {
+interface HeroProps {
+  movies: Movie[];
+  theatres: Theatre[];
+}
+
+export default function Hero({ movies, theatres }: HeroProps) {
   return (
     <div className="relative min-h-[90vh]">
       {/* Background Video */}
@@ -39,7 +45,7 @@ export default function Hero() {
         </div>
 
         {/* Search Bar */}
-        <SearchBar />
+        <SearchBar movies={movies} theatres={theatres} />
       </div>
     </div>
   );
