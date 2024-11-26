@@ -35,10 +35,11 @@ public class MovieController {
         return movieService.getMovieById(id);
     }
 
-    // Get Showtime by movie
-    @GetMapping("/movie/{movieId}/showtimes")
-    public List<Map<String, Object>> getShowtimesForMovie(@PathVariable Long movieId) {
-        return showtimeService.getShowtimesForMovie(movieId);
+    @GetMapping("movie/{movieId}/showtimes")
+    public Map<String, Object> getShowtimesForMovie(
+            @PathVariable Long movieId,
+            @RequestParam String selectedDate) { // Accept the selected date as a query parameter
+        return showtimeService.getShowtimesByMovieAndDate(movieId, selectedDate); // Pass date to service
     }
 
 }

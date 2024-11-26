@@ -5,10 +5,7 @@ import com.acmeplex.acmeplex_backend.service.ShowtimeService;
 import com.acmeplex.acmeplex_backend.service.TheatreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -34,8 +31,11 @@ public class TheatreController {
         return ResponseEntity.ok(theatre);
     }
 
+
     @GetMapping("theatre/{theatreId}/showtimes")
-    public List<Map<String, Object>> getShowtimesForTheatre(@PathVariable Long theatreId) {
-        return showtimeService.getShowtimesByTheatre(theatreId);
+    public Map<String, Object> getShowtimesForTheatre(
+            @PathVariable Long theatreId,
+            @RequestParam String selectedDate) { // Accept the selected date as a query parameter
+        return showtimeService.getShowtimesByTheatreAndDate(theatreId, selectedDate); // Pass date to service
     }
 }

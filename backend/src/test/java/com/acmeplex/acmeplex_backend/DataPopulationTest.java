@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.List;
 
 @SpringBootTest
 public class DataPopulationTest {
@@ -37,7 +37,7 @@ public class DataPopulationTest {
         // Create Movies
         Movie movie1 = new Movie();
         movie1.setName("Inception");
-        movie1.setPoster("inception_poster.jpg");
+        movie1.setPoster("https://i.ebayimg.com/00/s/MTYwMFgxMDk3/z/LlUAAOSwm8VUwoRL/$_57.JPG?set_id=880000500F");
         movie1.setDescription("A mind-bending thriller by Christopher Nolan.");
         movie1.setReleaseDate(LocalDate.of(2010, 7, 16));
         movie1.setDuration(148);
@@ -45,7 +45,7 @@ public class DataPopulationTest {
 
         Movie movie2 = new Movie();
         movie2.setName("The Dark Knight");
-        movie2.setPoster("dark_knight_poster.jpg");
+        movie2.setPoster("https://m.media-amazon.com/images/I/51rF2-tvXVL._AC_UF1000,1000_QL80_.jpg");
         movie2.setDescription("A superhero crime thriller by Christopher Nolan.");
         movie2.setReleaseDate(LocalDate.of(2008, 7, 18));
         movie2.setDuration(152);
@@ -53,7 +53,7 @@ public class DataPopulationTest {
 
         Movie movie3 = new Movie();
         movie3.setName("Interstellar");
-        movie3.setPoster("interstellar_poster.jpg");
+        movie3.setPoster("https://cdn.mos.cms.futurecdn.net/iQMcSeLoiJUZ27v6xRxqCP-1200-80.jpg");
         movie3.setDescription("A space exploration adventure by Christopher Nolan.");
         movie3.setReleaseDate(LocalDate.of(2014, 11, 7));
         movie3.setDuration(169);
@@ -70,46 +70,30 @@ public class DataPopulationTest {
         theatre2.setName("AcmePlex Uptown");
         theatre2.setAddress("456 Elm St, Uptown City");
 
-        Theatre theatre3 = new Theatre();
-        theatre3.setName("AcmePlex Midtown");
-        theatre3.setAddress("789 Oak St, Midtown City");
+        theatreRepository.saveAll(Arrays.asList(theatre1, theatre2));
 
-        theatreRepository.saveAll(Arrays.asList(theatre1, theatre2, theatre3));
+        // Define the specific day: Dec 3, 2024
+        LocalDateTime startDate = LocalDateTime.of(2024, 12, 3, 10, 0); // First showtime on Dec 3, 2024 at 10:00 AM
+        List<Theatre> theatres = Arrays.asList(theatre1, theatre2);  // List of theatres
+        List<Movie> movies = Arrays.asList(movie1, movie2, movie3); // List of movies
 
-        // Create Showtimes
-        Showtime showtime1 = new Showtime();
-        showtime1.setStartTime(LocalDateTime.of(2024, 11, 18, 19, 0));
-        showtime1.setMovie(movie1);
-        showtime1.setTheatre(theatre1);
+        // Create showtimes: 3 showtimes per movie in both theatres, all on Dec 3, 2024
+        for (Movie movie : movies) {
+            for (Theatre theatre : theatres) {
+                // Create 3 showtimes for each movie in each theatre
+                for (int i = 0; i < 3; i++) {
+                    Showtime showtime = new Showtime();
+                    // All showtimes will be on Dec 3, 2024 but spaced by 3 hours
+                    showtime.setStartTime(startDate.plusHours(i * 3));
+                    showtime.setMovie(movie);
+                    showtime.setTheatre(theatre);
+                    showtimeRepository.save(showtime);
 
-        Showtime showtime2 = new Showtime();
-        showtime2.setStartTime(LocalDateTime.of(2024, 11, 18, 21, 30));
-        showtime2.setMovie(movie1);
-        showtime2.setTheatre(theatre2);
-
-        Showtime showtime3 = new Showtime();
-        showtime3.setStartTime(LocalDateTime.of(2024, 11, 19, 18, 0));
-        showtime3.setMovie(movie2);
-        showtime3.setTheatre(theatre1);
-
-        Showtime showtime4 = new Showtime();
-        showtime4.setStartTime(LocalDateTime.of(2024, 11, 19, 20, 30));
-        showtime4.setMovie(movie2);
-        showtime4.setTheatre(theatre2);
-
-        Showtime showtime5 = new Showtime();
-        showtime5.setStartTime(LocalDateTime.of(2024, 11, 20, 18, 0));
-        showtime5.setMovie(movie3);
-        showtime5.setTheatre(theatre3);
-
-        showtimeRepository.saveAll(Arrays.asList(showtime1, showtime2, showtime3, showtime4, showtime5));
-
-        // Add Seats for Showtimes
-        createSeatsForShowtime(showtime1, 40); // 40 seats for showtime1
-        createSeatsForShowtime(showtime2, 40); // 40 seats for showtime2
-        createSeatsForShowtime(showtime3, 40); // 40 seats for showtime3
-        createSeatsForShowtime(showtime4, 40); // 40 seats for showtime4
-        createSeatsForShowtime(showtime5, 40); // 40 seats for showtime5
+                    // Create 40 seats for each showtime
+                    createSeatsForShowtime(showtime, 40);
+                }
+            }
+        }
 
         System.out.println("Data populated successfully!");
     }
