@@ -7,6 +7,7 @@ import com.acmeplex.acmeplex_backend.repository.ShowtimeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,8 +37,18 @@ public class ShowtimeService {
             theatreData.put("id", theatre.getId());
             theatreData.put("name", theatre.getName());
             theatreData.put("Address", theatre.getAddress());
-
             showtimeData.put("theatre", theatreData);
+
+            Map<String, Object> movieData = new HashMap<>();
+            Movie movie = showtime.getMovie();
+            movieData.put("id", movie.getId());
+            movieData.put("title", movie.getName());
+            movieData.put("poster", movie.getPoster()); // Assuming a `posterUrl` attribute exists
+            movieData.put("duration", movie.getDuration()); // Optional: Include duration if available
+            movieData.put("releaseDate", movie.getReleaseDate());
+            movieData.put("genre", movie.getGenre());
+            movieData.put("description", movie.getDescription());
+            showtimeData.put("movie", movieData);
 
             response.add(showtimeData);
         }
@@ -58,7 +69,9 @@ public class ShowtimeService {
             Movie movie = showtime.getMovie();
             movieData.put("id", movie.getId());
             movieData.put("title", movie.getName());
+            movieData.put("poster", movie.getPoster());
             movieData.put("duration", movie.getDuration()); // Assuming `duration` is in minutes
+            movieData.put("genre", movie.getGenre());
 
             showtimeData.put("movie", movieData);
 
