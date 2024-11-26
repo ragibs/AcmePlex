@@ -1,45 +1,35 @@
 "use client";
 
-import { useState } from "react";
-import { Star, Clock, Calendar, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Info, Clock, Calendar, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
-
-// Mock data
-const movie = {
-  title: "Inception",
-  poster:
-    "https://i.ebayimg.com/00/s/MTYwMFgxMDk3/z/LlUAAOSwm8VUwoRL/$_57.JPG?set_id=880000500F",
-  rating: 8.8,
-  duration: "2h 28min",
-  genre: "Sci-Fi, Action, Adventure",
-  releaseDate: "2010-07-16",
-};
-
-const theaterResults = [
-  {
-    id: 1,
-    name: "Cineplex Downtown",
-    address: "123 Main St, Cityville",
-    showtimes: ["10:00 AM", "1:30 PM", "5:00 PM", "8:30 PM"],
-  },
-  {
-    id: 2,
-    name: "Starlight Cinema",
-    address: "456 Park Ave, Townsburg",
-    showtimes: ["11:15 AM", "2:45 PM", "6:15 PM", "9:45 PM"],
-  },
-  {
-    id: 3,
-    name: "Mega Movies",
-    address: "789 Broadway, Metropolis",
-    showtimes: ["10:30 AM", "2:00 PM", "5:30 PM", "9:00 PM"],
-  },
-];
+import { useParams } from "react-router-dom";
+import api from "../api/apiConfig";
+import { MovieWithTheatres } from "../types";
+import { formatTimeToAmPm } from "../utils/formatTimeToAmPm";
+import { Link } from "react-router-dom";
 
 export default function SearchByMovie() {
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const { id, date } = useParams();
+  const [movieWithTheatres, setMovieWithTheatres] =
+    useState<MovieWithTheatres | null>(null);
+  const [selectedShowtime, setSelectedShowtime] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTheatres = async () => {
+      try {
+        const response = await api.get(
+          `/movie/${id}/showtimes?selectedDate=${date}`
+        );
+        console.log(response.data);
+        setMovieWithTheatres(response.data);
+      } catch (error) {
+        console.error("Error fetching movies:", error);
+      }
+    };
+
+    fetchTheatres();
+  }, [id, date]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -58,6 +48,10 @@ export default function SearchByMovie() {
     visible: { y: 0, opacity: 1 },
   };
 
+  const handleShowtimeSelect = (showtimeId: string) => {
+    setSelectedShowtime(showtimeId); // Save selected showtime to state
+  };
+
   return (
     <motion.div
       className="min-h-screen bg-gray-900 text-white"
@@ -74,29 +68,31 @@ export default function SearchByMovie() {
             variants={itemVariants}
           >
             <img
-              src={movie.poster}
-              alt={movie.title}
+              src={movieWithTheatres?.poster}
+              alt={movieWithTheatres?.title}
               className="rounded-xl shadow-lg w-[300px] h-[450px] object-cover"
             />
             <div className="text-center md:text-left">
               <h1 className="text-4xl md:text-5xl font-light mb-4">
-                {movie.title}
+                {movieWithTheatres?.title}
               </h1>
               <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-4">
                 <div className="flex items-center">
-                  <Star className="text-primary-500 mr-1" size={20} />
-                  <span>{movie.rating}/10</span>
+                  <Info className="text-primary-500 mr-1" size={20} />
+                  <span>{movieWithTheatres?.genre}</span>
                 </div>
                 <div className="flex items-center">
                   <Clock className="text-primary-500 mr-1" size={20} />
-                  <span>{movie.duration}</span>
+                  <span>{movieWithTheatres?.duration} mins</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="text-primary-500 mr-1" size={20} />
-                  <span>{movie.releaseDate}</span>
+                  <span>{movieWithTheatres?.releaseDate}</span>
                 </div>
               </div>
-              <p className="text-lg text-gray-300 mb-4">{movie.genre}</p>
+              <p className="text-lg text-gray-300 mb-4">
+                {movieWithTheatres?.description}
+              </p>
             </div>
           </motion.div>
         </div>
@@ -108,11 +104,11 @@ export default function SearchByMovie() {
         variants={itemVariants}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-light">Select Date</h2>
+          <h2 className="text-2xl font-light">Date</h2>
           <input
             type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+            value={date}
+            disabled
             className="bg-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
@@ -123,7 +119,7 @@ export default function SearchByMovie() {
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
         variants={itemVariants}
       >
-        <h2 className="text-3xl font-light mb-8">Showtimes & Tickets</h2>
+        <h2 className="text-3xl font-light mb-8">Theatres & Showtimes</h2>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
@@ -133,7 +129,7 @@ export default function SearchByMovie() {
               </tr>
             </thead>
             <tbody>
-              {theaterResults.map((theater) => (
+              {movieWithTheatres?.theatres.map((theater) => (
                 <motion.tr
                   key={theater.id}
                   className="border-b border-gray-800"
@@ -145,12 +141,19 @@ export default function SearchByMovie() {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex flex-wrap gap-2">
-                      {theater.showtimes.map((time, index) => (
+                      {theater.showtimes?.map((showtime) => (
                         <button
-                          key={index}
-                          className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors"
+                          key={showtime.id}
+                          onClick={() => handleShowtimeSelect(showtime.id)}
+                          className={`px-4 py-2 ${
+                            selectedShowtime === showtime.id
+                              ? "bg-primary-600"
+                              : selectedShowtime
+                              ? "bg-gray-700"
+                              : "bg-primary-500"
+                          } hover:bg-primary-600 text-white text-sm font-medium rounded-lg transition-colors`}
                         >
-                          {time}
+                          {formatTimeToAmPm(showtime.startTime)}
                         </button>
                       ))}
                     </div>
@@ -169,10 +172,17 @@ export default function SearchByMovie() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <button className="bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center">
-          Next: Seat Selection
-          <ChevronRight className="ml-2" size={20} />
-        </button>
+        <Link to={`/seatselection/${selectedShowtime}`}>
+          <button
+            className={`bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center ${
+              !selectedShowtime ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={!selectedShowtime} // Disable button if no showtime is selected
+          >
+            Next: Seat Selection
+            <ChevronRight className="ml-2" size={20} />
+          </button>
+        </Link>
       </motion.div>
     </motion.div>
   );

@@ -17,7 +17,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/searchbymovie" element={<SearchByMovie />} />
+      <Route path="/searchbymovie/:id/:date" element={<SearchByMovie />} />
       <Route path="/searchbytheatre" element={<SearchByTheatre />} />
       <Route path="/seatselection" element={<SeatSelection />} />
       <Route path="/getReservation" element={<GetReservation />} />
