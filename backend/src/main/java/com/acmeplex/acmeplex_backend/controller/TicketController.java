@@ -20,50 +20,50 @@ public class TicketController
     @Autowired
     private TicketService ticketService;
 
-    @GetMapping("/getticket/{ticketID}")
-    public ResponseEntity<?> getTicket(@PathVariable Long ticketID){
-        Ticket ticket = new Ticket();
-        try{
-            ticket = ticketService.getTicket(ticketID);
-        } catch (IllegalArgumentException exception){
-            return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(ticket, HttpStatus.OK);
-    }
-
-    @PostMapping("/createticket")
-    public ResponseEntity<?> createTicket(@RequestBody Ticket ticket){
-        Ticket createdTicket = new Ticket();
-        try{
-            createdTicket = ticketService.createTicket(ticket);
-        } catch (IllegalArgumentException exception){
-            return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(ticket, HttpStatus.CREATED);
-    }
-
-    @PostMapping("/createmultiple")
-    public ResponseEntity<?> createTickets(@RequestBody List<Ticket> tickets){
-        List<Ticket> createdTickets = new ArrayList<>();
-        for (Ticket ticket: tickets){
-            try{
-                Ticket createdTicket = ticketService.createTicket(ticket);
-                createdTickets.add(createdTicket);
-            } catch (IllegalArgumentException exception){
-                ticketService.deleteTickets(createdTickets);
-                return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-            }
-        }
-        return new ResponseEntity<>(createdTickets, HttpStatus.CREATED);
-    }
-
-    @PutMapping("/updateticket")
-    public ResponseEntity<String> updateTicketStatus(Long ticketID, String updatedStatus){
-        try {
-            ticketService.updateStatus(ticketID, updatedStatus);
-        } catch (IllegalArgumentException exception) {
-            return ResponseEntity.status(400).body(exception.getMessage());
-        }
-        return ResponseEntity.status(200).body("Ticket Status updated successfully");
-    }
+//    @GetMapping("/getticket/{ticketID}")
+//    public ResponseEntity<?> getTicket(@PathVariable Long ticketID){
+//        Ticket ticket = new Ticket();
+//        try{
+//            ticket = ticketService.getTicket(ticketID);
+//        } catch (IllegalArgumentException exception){
+//            return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+//        }
+//        return new ResponseEntity<>(ticket, HttpStatus.OK);
+//    }
+//
+//    @PostMapping("/createticket")
+//    public ResponseEntity<?> createTicket(@RequestBody Ticket ticket){
+//        Ticket createdTicket = new Ticket();
+//        try{
+//            createdTicket = ticketService.createTicket(ticket);
+//        } catch (IllegalArgumentException exception){
+//            return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+//        }
+//        return new ResponseEntity<>(ticket, HttpStatus.CREATED);
+//    }
+//
+//    @PostMapping("/createmultiple")
+//    public ResponseEntity<?> createTickets(@RequestBody List<Ticket> tickets){
+//        List<Ticket> createdTickets = new ArrayList<>();
+//        for (Ticket ticket: tickets){
+//            try{
+//                Ticket createdTicket = ticketService.createTicket(ticket);
+//                createdTickets.add(createdTicket);
+//            } catch (IllegalArgumentException exception){
+//                ticketService.deleteTickets(createdTickets);
+//                return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+//            }
+//        }
+//        return new ResponseEntity<>(createdTickets, HttpStatus.CREATED);
+//    }
+//
+//    @PutMapping("/updateticket")
+//    public ResponseEntity<String> updateTicketStatus(Long ticketID, String updatedStatus){
+//        try {
+//            ticketService.updateStatus(ticketID, updatedStatus);
+//        } catch (IllegalArgumentException exception) {
+//            return ResponseEntity.status(400).body(exception.getMessage());
+//        }
+//        return ResponseEntity.status(200).body("Ticket Status updated successfully");
+//    }
 }

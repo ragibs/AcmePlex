@@ -1,6 +1,7 @@
 package com.acmeplex.acmeplex_backend.controller;
 
 import com.acmeplex.acmeplex_backend.model.Reservation;
+import com.acmeplex.acmeplex_backend.model.ReservationRequest;
 import com.acmeplex.acmeplex_backend.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,11 +18,11 @@ public class ReservationController {
     @Autowired
     public ReservationService reservationService;
 
-    @PostMapping
-    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation){
-        Reservation newRes = reservationService.createReservation(reservation);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newRes);
-    }
+//    @PostMapping
+//    public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation){
+//        Reservation newRes = reservationService.createReservation(reservation);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(newRes);
+//    }
     @GetMapping("/{id}")
     public Optional<Reservation> getReservationByID(@PathVariable Long id) {
         return reservationService.getReservationById(id);
@@ -44,9 +45,9 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping
-    public ResponseEntity<?> createReservation(Long showtimeID, List<Long> seatIDS, String userEmail, String paymentConfirmation){
-        reservationService.createReservation(showtimeID, seatIDS, userEmail, paymentConfirmation);
+    @PostMapping("/create")
+    public ResponseEntity<?> createReservation(@RequestBody ReservationRequest reservationRequest){
+        reservationService.createReservation(reservationRequest);
         return new ResponseEntity<>("Reservation created successfully", HttpStatus.CREATED);
     }
 

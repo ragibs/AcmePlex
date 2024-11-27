@@ -1,6 +1,7 @@
 package com.acmeplex.acmeplex_backend.service;
 
 import com.acmeplex.acmeplex_backend.model.Reservation;
+import com.acmeplex.acmeplex_backend.model.ReservationRequest;
 import com.acmeplex.acmeplex_backend.model.User;
 import com.acmeplex.acmeplex_backend.repository.ReservationRepository;
 import com.acmeplex.acmeplex_backend.repository.UserRepository;
@@ -54,17 +55,17 @@ public class ReservationService{
     }
 
 
-    public void createReservation(Long showtimeID, List<Long> seatIDS, String userEmail, String paymentConfirmation){
-        if (!userService.userExists(userEmail)){
-            userService.registerUser(userEmail);
+    public void createReservation(ReservationRequest reservationRequest){
+        if (!userService.userExists(reservationRequest.userEmail())){
+            userService.registerUser(reservationRequest.userEmail());
         }
         Reservation reservation = new Reservation();
         reservation.setStatus("ACTIVE");
-        reservation.setUser(userService.getUser(userEmail));
-        reservation.setPaymentConfirmation(paymentConfirmation);
+        reservation.setUser(userService.getUser(reservationRequest.userEmail()));
+        reservation.setPaymentConfirmation(reservationRequest.paymentConfirmation());
         reservation.setReservationDate(LocalDateTime.now());
-        for (Long seatID: seatIDS){
-            ticketService.createTicket(showtimeID, seatID, reservation.getId());
+        for (Long seatID: reservationRequest.seatIDS()){
+            ticketService.createTicket(reservationRequest.showtimeID(), seatID, reservation.getId());
         }
     }
 }
