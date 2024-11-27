@@ -33,7 +33,7 @@ public class ReservationService{
         return reservationRepository.findAll();
     }
 
-    public void createReservation(ReservationRequest reservationRequest){
+    public Reservation createReservation(ReservationRequest reservationRequest){
         if (!userService.userExists(reservationRequest.userEmail())){
             userService.registerUser(reservationRequest.userEmail());
         }
@@ -46,6 +46,7 @@ public class ReservationService{
         for (Long seatID: reservationRequest.seatIDList()){
             ticketService.createTicket(reservationRequest.showtimeID(), seatID, reservation.getId());
         }
+        return reservation;
     }
 
     public String cancelReservation(Long reservationID){
@@ -61,13 +62,18 @@ public class ReservationService{
         if (!(reservation.getUser() instanceof RegisteredUser)){
             couponPrice *= 0.85;
         }
+        reservation.setStatus("CANCELLED");
+        reservationRepository.save(reservation);
         return couponService.createCoupon(reservation.getUser(), couponPrice);
     }
 
     public boolean reservationCanBeCancelled(Long reservationID){
-        boolean cancellable = true;
         Reservation reservation = reservationRepository.findById(reservationID)
                 .orElseThrow(()-> new IllegalArgumentException("Invalid Registration ID"));
+        if (reservation.getStatus().equals("CANCELLED")){
+            return false;
+        }
+        boolean cancellable = true;
         for (Ticket ticket: reservation.getTickets()){
             double hoursToMovie = Duration.between(LocalDateTime.now(), ticket.getShowtime().getStartTime()).toHours();
             if (hoursToMovie <= 72){

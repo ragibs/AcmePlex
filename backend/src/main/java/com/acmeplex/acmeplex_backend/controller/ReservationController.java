@@ -26,15 +26,15 @@ public class ReservationController {
     @PostMapping("/create")
     public ResponseEntity<?> createReservation(@RequestBody ReservationRequest reservationRequest){
         try{
-            reservationService.createReservation(reservationRequest);
+            Reservation reservation = reservationService.createReservation(reservationRequest);
+            return new ResponseEntity<Reservation>(reservation, HttpStatus.CREATED);
         } catch (IllegalArgumentException exception){
             return new ResponseEntity<>("Please check the reservation request" + exception.getMessage(), HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>("Reservation created successfully", HttpStatus.CREATED);
     }
 
-    @PutMapping("/cancel")
-    public ResponseEntity<?> cancelReservation(@RequestParam Long reservationID){
+    @PutMapping("/cancel/{reservationID}")
+    public ResponseEntity<?> cancelReservation(@PathVariable Long reservationID){
         if (!(reservationService.reservationCanBeCancelled(reservationID))){
             return new ResponseEntity<>("This reservation can no longer be cancelled", HttpStatus.NOT_ACCEPTABLE);
         }
