@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class TicketService {
@@ -80,6 +81,13 @@ public class TicketService {
             seat.setBooked(false);
             seatRepository.save(seat);
             ticketRepository.delete(ticket);
+        }
+    }
+
+    public void cancelTickets(Set<Ticket> tickets){
+        for (Ticket ticket: tickets){
+            ticket.getSeat().setBooked(false);
+            ticket.setStatus(TicketStatus.cancelled);
         }
     }
 }
