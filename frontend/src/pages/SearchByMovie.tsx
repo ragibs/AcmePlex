@@ -3,33 +3,60 @@
 import { useState, useEffect } from "react";
 import { Info, Clock, Calendar, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/apiConfig";
 import { MovieWithTheatres } from "../types";
 import { formatTimeToAmPm } from "../utils/formatTimeToAmPm";
 import { Link } from "react-router-dom";
+import PacmanLoader from "react-spinners/PacmanLoader";
 
 export default function SearchByMovie() {
   const { id, date } = useParams();
+  const navigate = useNavigate();
+
   const [movieWithTheatres, setMovieWithTheatres] =
     useState<MovieWithTheatres | null>(null);
   const [selectedShowtime, setSelectedShowtime] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTheatres = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const response = await api.get(
           `/movie/${id}/showtimes?selectedDate=${date}`
         );
-        console.log(response.data);
+        if (
+          !response.data ||
+          !response.data.theatres ||
+          response.data.theatres.length === 0
+        ) {
+          throw new Error("No theaters or showtimes found.");
+        }
         setMovieWithTheatres(response.data);
-      } catch (error) {
-        console.error("Error fetching movies:", error);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to fetch movie details. Redirecting to home...";
+        setError(errorMessage);
+
+        setTimeout(() => {
+          navigate("/");
+        }, 5000);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchTheatres();
-  }, [id, date]);
+  }, [id, date, navigate]);
+
+  const handleShowtimeSelect = (showtimeId: string) => {
+    setSelectedShowtime(showtimeId);
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -48,9 +75,26 @@ export default function SearchByMovie() {
     visible: { y: 0, opacity: 1 },
   };
 
-  const handleShowtimeSelect = (showtimeId: string) => {
-    setSelectedShowtime(showtimeId); // Save selected showtime to state
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <PacmanLoader color="##0891b2" size={50} />
+      </div>
+    );
+  }
+
+  if (error) {
+    // Show error message with redirect timer
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+        <h1 className="text-3xl font-bold mb-4">Error</h1>
+        <p className="text-lg text-gray-400 mb-6">{error}</p>
+        <p className="text-sm text-gray-500">
+          Redirecting to the homepage in 5 seconds...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -83,7 +127,7 @@ export default function SearchByMovie() {
                 </div>
                 <div className="flex items-center">
                   <Clock className="text-primary-500 mr-1" size={20} />
-                  <span>{movieWithTheatres?.duration} mins</span>
+                  <span>{movieWithTheatres?.duration} min</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="text-primary-500 mr-1" size={20} />
@@ -104,12 +148,12 @@ export default function SearchByMovie() {
         variants={itemVariants}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-light">Date</h2>
+          <h2 className="text-2xl font-light">Date Selected</h2>
           <input
             type="date"
             value={date}
             disabled
-            className="bg-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className=" bg-gray-800 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
         </div>
       </motion.div>
@@ -129,7 +173,7 @@ export default function SearchByMovie() {
               </tr>
             </thead>
             <tbody>
-              {movieWithTheatres?.theatres.map((theater) => (
+              {movieWithTheatres?.theatres?.map((theater) => (
                 <motion.tr
                   key={theater.id}
                   className="border-b border-gray-800"
@@ -177,7 +221,7 @@ export default function SearchByMovie() {
             className={`bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center ${
               !selectedShowtime ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            disabled={!selectedShowtime} // Disable button if no showtime is selected
+            disabled={!selectedShowtime}
           >
             Next: Seat Selection
             <ChevronRight className="ml-2" size={20} />

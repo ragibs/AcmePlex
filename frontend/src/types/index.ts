@@ -23,3 +23,19 @@ export interface Showtime {
 export interface MovieWithTheatres extends Movie {
   theatres: Theatre[];
 }
+
+export interface TheatreWithMovies {
+  id: string;
+  name: string;
+  address: string;
+  movies: MovieWithShowtimes[];
+}
+
+export interface MovieWithShowtimes {
+  id: string;
+  title: string;
+  poster: string; // Movie duration in minutes
+  genre: string;
+  duration: string;
+  showtimes: Showtime[];
+}
