@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class ReservationService{
@@ -33,7 +34,7 @@ public class ReservationService{
         return reservationRepository.findAll();
     }
 
-    public Reservation createReservation(ReservationRequest reservationRequest){
+    public ReservationConfirmation createReservation(ReservationRequest reservationRequest){
         if (!userService.userExists(reservationRequest.userEmail())){
             userService.registerUser(reservationRequest.userEmail());
         }
@@ -47,7 +48,22 @@ public class ReservationService{
         for (Long seatID: reservationRequest.seatIDList()){
             ticketService.createTicket(reservationRequest.showtimeID(), seatID, reservation.getId());
         }
-        return reservation;
+        List<Ticket> tickets = reservation.getTickets().stream().toList();
+        return createReservationConfirmation(tickets, reservation);
+    }
+
+    public ReservationConfirmation createReservationConfirmation(List<Ticket> tickets, Reservation reservation){
+        Ticket ticket = tickets.get(0);
+        ReservationConfirmation reservationConfirmation = new ReservationConfirmation();
+        reservationConfirmation.setMovieName(ticket.getShowtime().getMovie().getName());
+        reservationConfirmation.setMoviePoster(ticket.getShowtime().getMovie().getPoster());
+        reservationConfirmation.setShowTime(ticket.getShowtime().getStartTime());
+        reservationConfirmation.setUserEmail(reservation.getUser().getEmail());
+
+        for (Ticket ticketItem: tickets){
+            reservationConfirmation.addSeatName(ticketItem.getSeat().getSeatNumber());
+        }
+        return reservationConfirmation;
     }
 
     public String cancelReservation(Long reservationID){

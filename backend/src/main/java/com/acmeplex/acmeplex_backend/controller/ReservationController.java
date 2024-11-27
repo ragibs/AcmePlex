@@ -1,6 +1,7 @@
 package com.acmeplex.acmeplex_backend.controller;
 
 import com.acmeplex.acmeplex_backend.model.Reservation;
+import com.acmeplex.acmeplex_backend.model.ReservationConfirmation;
 import com.acmeplex.acmeplex_backend.model.ReservationRequest;
 import com.acmeplex.acmeplex_backend.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,8 @@ public class ReservationController {
     @PostMapping("/create")
     public ResponseEntity<?> createReservation(@RequestBody ReservationRequest reservationRequest){
         try{
-            Reservation reservation = reservationService.createReservation(reservationRequest);
-            return new ResponseEntity<Reservation>(reservation, HttpStatus.CREATED);
+            ReservationConfirmation reservationConfirmation = reservationService.createReservation(reservationRequest);
+            return new ResponseEntity<ReservationConfirmation>(reservationConfirmation, HttpStatus.CREATED);
         } catch (IllegalArgumentException exception){
             return new ResponseEntity<>("Please check the reservation request" + exception.getMessage(), HttpStatus.BAD_REQUEST);
         }

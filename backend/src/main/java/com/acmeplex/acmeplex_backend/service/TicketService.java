@@ -89,4 +89,8 @@ public class TicketService {
             ticket.setStatus(TicketStatus.cancelled);
         }
     }
+
+    public String getTicketName(Reservation reservation){
+        return "";
+    }
 }
