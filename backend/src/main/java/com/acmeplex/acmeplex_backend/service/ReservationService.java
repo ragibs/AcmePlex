@@ -64,6 +64,7 @@ public class ReservationService{
         reservation.setUser(userService.getUser(reservationRequest.userEmail()));
         reservation.setPaymentConfirmation(reservationRequest.paymentConfirmation());
         reservation.setReservationDate(LocalDateTime.now());
+        reservationRepository.save(reservation);
         for (Long seatID: reservationRequest.seatIDS()){
             ticketService.createTicket(reservationRequest.showtimeID(), seatID, reservation.getId());
         }
