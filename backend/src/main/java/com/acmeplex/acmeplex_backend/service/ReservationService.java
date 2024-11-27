@@ -1,10 +1,13 @@
 package com.acmeplex.acmeplex_backend.service;
 
-import com.acmeplex.acmeplex_backend.model.Reservation;
+import com.acmeplex.acmeplex_backend.model.*;
 import com.acmeplex.acmeplex_backend.repository.ReservationRepository;
+import com.acmeplex.acmeplex_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,14 +16,14 @@ public class ReservationService{
 
     @Autowired
     private ReservationRepository reservationRepository;
-
-    public ReservationService(ReservationRepository reservationRepository){
-        this.reservationRepository = reservationRepository;
-    }
-
-    public Reservation createReservation(Reservation res){
-        return reservationRepository.save(res);
-    }
+    @Autowired
+    private TicketService ticketService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private RegisteredUserService registeredUserService;
+    @Autowired
+    private CouponService couponService;
 
     public Optional<Reservation> getReservationById(long Id){
         return reservationRepository.findById(Id);
@@ -30,19 +33,53 @@ public class ReservationService{
         return reservationRepository.findAll();
     }
 
-    //need to implement ticket first so I can get the movie, then update it
-    public Reservation updateReservation(Long id, Reservation updatedR){
-        return reservationRepository.findById(id).map(
-                reservation -> {
-//                    reservation.setMovieName(updatedR.getMovieName());
-//                    reservation.setSeatNumber(updatedR.getSeatNumber());
-//                    reservation.setShowTime(updatedR.setShowTime());
-                    //these are just temporary stubs, until ticket is properly implemented.
-                    return reservationRepository.save(reservation);
-                }).orElseThrow(()-> new RuntimeException("Reservation Not Found"));
+    public Reservation createReservation(ReservationRequest reservationRequest){
+        if (!userService.userExists(reservationRequest.userEmail())){
+            userService.registerUser(reservationRequest.userEmail());
+        }
+        Reservation reservation = new Reservation();
+        reservation.setStatus("ACTIVE");
+        reservation.setUser(userService.getUser(reservationRequest.userEmail()));
+        reservation.setPaymentConfirmation(reservationRequest.paymentConfirmation());
+        reservation.setReservationDate(LocalDateTime.now());
+        reservationRepository.save(reservation);
+        for (Long seatID: reservationRequest.seatIDList()){
+            ticketService.createTicket(reservationRequest.showtimeID(), seatID, reservation.getId());
+        }
+        return reservation;
     }
 
-    public void deleteReservation(Long id){
-        reservationRepository.deleteById(id);
+    public String cancelReservation(Long reservationID){
+        Reservation reservation = reservationRepository.findById(reservationID)
+                .orElseThrow(()-> new IllegalArgumentException("Invalid Registration ID"));
+        ticketService.cancelTickets(reservation.getTickets());
+
+        double couponPrice = 0;
+        for (Ticket ticket: reservation.getTickets()){
+            couponPrice += ticket.getPrice();
+        }
+
+        if (!(reservation.getUser() instanceof RegisteredUser)){
+            couponPrice *= 0.85;
+        }
+        reservation.setStatus("CANCELLED");
+        reservationRepository.save(reservation);
+        return couponService.createCoupon(reservation.getUser(), couponPrice);
+    }
+
+    public boolean reservationCanBeCancelled(Long reservationID){
+        Reservation reservation = reservationRepository.findById(reservationID)
+                .orElseThrow(()-> new IllegalArgumentException("Invalid Registration ID"));
+        if (reservation.getStatus().equals("CANCELLED")){
+            return false;
+        }
+        boolean cancellable = true;
+        for (Ticket ticket: reservation.getTickets()){
+            double hoursToMovie = Duration.between(LocalDateTime.now(), ticket.getShowtime().getStartTime()).toHours();
+            if (hoursToMovie <= 72){
+                cancellable = false;
+            }
+        }
+        return cancellable;
     }
 }
