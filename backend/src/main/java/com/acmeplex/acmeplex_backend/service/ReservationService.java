@@ -41,6 +41,7 @@ public class ReservationService{
         reservation.setStatus("ACTIVE");
         reservation.setUser(userService.getUser(reservationRequest.userEmail()));
         reservation.setPaymentConfirmation(reservationRequest.paymentConfirmation());
+        reservation.setReservationValue(reservationRequest.reservationValue());
         reservation.setReservationDate(LocalDateTime.now());
         reservationRepository.save(reservation);
         for (Long seatID: reservationRequest.seatIDList()){
@@ -54,17 +55,14 @@ public class ReservationService{
                 .orElseThrow(()-> new IllegalArgumentException("Invalid Registration ID"));
         ticketService.cancelTickets(reservation.getTickets());
 
-        double couponPrice = 0;
-        for (Ticket ticket: reservation.getTickets()){
-            couponPrice += ticket.getPrice();
-        }
+        double couponValue = reservation.getReservationValue();
 
         if (!(reservation.getUser() instanceof RegisteredUser)){
-            couponPrice *= 0.85;
+            couponValue *= 0.85;
         }
         reservation.setStatus("CANCELLED");
         reservationRepository.save(reservation);
-        return couponService.createCoupon(reservation.getUser(), couponPrice);
+        return couponService.createCoupon(reservation.getUser(), couponValue);
     }
 
     public boolean reservationCanBeCancelled(Long reservationID){

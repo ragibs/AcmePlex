@@ -19,6 +19,8 @@ public class Reservation {
 
     private String paymentConfirmation;
 
+    private double reservationValue;
+
     // Many-to-One relationship with User
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -74,5 +76,13 @@ public class Reservation {
 
     public void setPaymentConfirmation(String paymentConfirmation) {
         this.paymentConfirmation = paymentConfirmation;
+    }
+
+    public double getReservationValue() {
+        return reservationValue;
+    }
+
+    public void setReservationValue(double reservationValue) {
+        this.reservationValue = reservationValue;
     }
 }

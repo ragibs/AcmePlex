@@ -44,7 +44,6 @@ public class TicketService {
         seatRepository.save(seat);
         Ticket createdTicket = new Ticket();
         createdTicket.setStatus(TicketStatus.active);
-        createdTicket.setPrice(10);
         createdTicket.setShowtime(showtime);
         createdTicket.setSeat(seat);
         createdTicket.setReservation(reservation);
