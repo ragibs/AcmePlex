@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -12,6 +10,7 @@ import {
   Lock,
   Tag,
   Loader,
+  ChevronLeft,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
@@ -22,6 +21,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { generatePaymentConfirmationNumber } from "../utils/generatePaymentConfirmationNumber";
 import api from "../api/apiConfig";
+import Cookies from "js-cookie";
 
 const guestSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -34,7 +34,7 @@ const guestSchema = z.object({
 });
 
 const signinSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -77,7 +77,7 @@ export default function ConfirmTickets() {
   });
 
   useEffect(() => {
-    if (!state.moviename) {
+    if (!state.moviename || !state.totalprice) {
       setError(
         "It seems you're attempting to access the page without selecting a showtime. Please select a showtime before proceeding."
       );
@@ -87,6 +87,9 @@ export default function ConfirmTickets() {
     }
   }, []);
 
+  const handlePrevious = () => {
+    navigate(`/seatselection/${state.showtimeId}`);
+  };
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -106,6 +109,7 @@ export default function ConfirmTickets() {
 
   const onSubmitGuest = async (data: GuestFormData) => {
     setIsSubmitting(true);
+    setFormError(null);
     const payload = {
       showtimeID: state.showtimeId,
       seatIDList: state.seatIds,
@@ -130,9 +134,35 @@ export default function ConfirmTickets() {
     }
   };
 
-  const onSubmitSignin: SubmitHandler<SigninFormData> = (data) => {
-    console.log("Signin form submitted", data);
-    // Handle signin and purchase logic here
+  const onSubmitSignin: SubmitHandler<SigninFormData> = async (data) => {
+    setError(null);
+    setIsSubmitting(true);
+    const payload = {
+      email: data.email,
+      password: data.password,
+    };
+    try {
+      const response = await api.post("http://localhost:8080/login", payload);
+
+      if (response.status === 200) {
+        Cookies.set("user", JSON.stringify(await response.data));
+        navigate(`/signedinpurchase/${data.email}`, {
+          state: { from: "/confirmtickets" },
+        });
+      } else {
+        setFormError(
+          "Login failed. Please check your credentials and try again."
+        );
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        setFormError(error.response.data);
+      } else {
+        setFormError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const applyCoupon = () => {
@@ -441,78 +471,104 @@ export default function ConfirmTickets() {
                   )}
                 </>
               ) : (
-                <form onSubmit={handleSubmitSignin(onSubmitSignin)}>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="username"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      Username
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="username"
-                        {...registerSignin("username")}
-                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                      />
-                      <User
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={20}
-                      />
+                <>
+                  <form onSubmit={handleSubmitSignin(onSubmitSignin)}>
+                    <div className="mb-4">
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium mb-2"
+                      >
+                        email
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="email"
+                          {...registerSignin("email")}
+                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                          disabled={isSubmitting}
+                        />
+                        <User
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                          size={20}
+                        />
+                      </div>
+                      {errorsSignin.email && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errorsSignin.email.message}
+                        </p>
+                      )}
                     </div>
-                    {errorsSignin.username && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errorsSignin.username.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="password"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="password"
-                        id="password"
-                        {...registerSignin("password")}
-                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                      />
-                      <Lock
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={20}
-                      />
+                    <div className="mb-4">
+                      <label
+                        htmlFor="password"
+                        className="block text-sm font-medium mb-2"
+                      >
+                        Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          id="password"
+                          {...registerSignin("password")}
+                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                          disabled={isSubmitting}
+                        />
+                        <Lock
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                          size={20}
+                        />
+                      </div>
+                      {errorsSignin.password && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errorsSignin.password.message}
+                        </p>
+                      )}
                     </div>
-                    {errorsSignin.password && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errorsSignin.password.message}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"
-                  >
-                    Sign In and Purchase
-                  </button>
-                  <p className="mt-4 text-center text-sm">
-                    Don't have an account?{" "}
-                    <Link
-                      to="/register"
-                      className="text-primary-400 hover:text-primary-300 transition-colors"
+                    <button
+                      type="submit"
+                      className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"
+                      disabled={isSubmitting}
                     >
-                      Click here to register
-                    </Link>
-                  </p>
-                </form>
+                      Sign In and Purchase
+                    </button>
+                    <p className="mt-4 text-center text-sm">
+                      Don't have an account?{" "}
+                      <Link
+                        to="/register"
+                        state={{ from: "/confirmtickets" }}
+                        className="text-primary-400 hover:text-primary-300 transition-colors"
+                      >
+                        Click here to register
+                      </Link>
+                    </p>
+                  </form>
+                  {formError && (
+                    <div className=" text-red-500 text-center py-2 px-4 rounded-md mb-4">
+                      {formError}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </motion.div>
         </div>
       </div>
+      {/* Change Seats Button */}
+      <motion.div
+        className="fixed bottom-8 left-8"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <button
+          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center md:w-auto md:h-auto w-12 h-12 justify-center"
+          onClick={handlePrevious}
+        >
+          <ChevronLeft className="md:mr-2" size={20} />
+          <span className="hidden md:inline">Change Seats</span>
+        </button>
+      </motion.div>
     </motion.div>
   );
 }

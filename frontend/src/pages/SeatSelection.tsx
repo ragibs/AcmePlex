@@ -10,6 +10,7 @@ import {
   Info,
   MapPin,
   DollarSign,
+  ChevronLeft,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api/apiConfig";
@@ -151,10 +152,15 @@ export default function SeatSelection() {
   };
 
   const handleNext = () => {
-    updateState("totalprice", totalPrice);
+    const calculatedTotalPrice = ticketCount * TICKET_PRICE;
+    updateState("totalprice", calculatedTotalPrice);
     updateState("seats", selectedSeats);
     updateState("seatIds", selectedSeatsId);
     navigate("/confirmtickets");
+  };
+
+  const handlePrevious = () => {
+    navigate(-1);
   };
 
   if (isLoading) {
@@ -197,7 +203,6 @@ export default function SeatSelection() {
             />
             <div>
               <h1 className="text-3xl font-light mb-2">{state.moviename}</h1>
-              {/* <p className="text-sm text-gray-400 mb-2">{movieInfo.genre}</p> */}
               <div className="flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center">
                   <Info className="text-primary-500 mr-2" size={16} />
@@ -289,6 +294,21 @@ export default function SeatSelection() {
           </motion.div>
         </div>
       </div>
+      {/* Change Showtime Button */}
+      <motion.div
+        className="fixed bottom-8 left-8"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <button
+          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center md:w-auto md:h-auto w-15 h-12 justify-center"
+          onClick={handlePrevious}
+        >
+          <ChevronLeft className="md:mr-2" size={20} />
+          <span className="hidden md:inline">Change Showtime</span>
+        </button>
+      </motion.div>
 
       {/* Next: Confirm Selection Button */}
       <motion.div
@@ -298,16 +318,16 @@ export default function SeatSelection() {
         transition={{ delay: 0.5 }}
       >
         <button
-          className={`bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center ${
-            selectedSeats.length !== ticketCount
+          className={`bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center md:w-auto md:h-auto w-15 h-12 justify-center ${
+            ticketCount === 0 || selectedSeats.length !== ticketCount
               ? "opacity-50 cursor-not-allowed"
               : ""
           }`}
-          disabled={selectedSeats.length !== ticketCount}
+          disabled={ticketCount === 0 || selectedSeats.length !== ticketCount}
           onClick={handleNext}
         >
-          Confirm Selection
-          <ChevronRight className="ml-2" size={20} />
+          <span className="hidden md:inline">Confirm Selection</span>
+          <ChevronRight className="md:ml-2" size={20} />
         </button>
       </motion.div>
     </motion.div>
