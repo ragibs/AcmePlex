@@ -16,6 +16,14 @@ public class ReservationConfirmation {
 
     private String userEmail;
 
+    private Long reservationID;
+
+    private double reservationValue;
+
+    private String reservationStatus;
+
+    private double eligibleRefundValue;
+
     private List<String> seatNames = new ArrayList<>();
 
     public String getMovieName() {
@@ -68,5 +76,37 @@ public class ReservationConfirmation {
 
     public void addSeatName(String seatName){
         seatNames.add(seatName);
+    }
+
+    public Long getReservationID() {
+        return reservationID;
+    }
+
+    public void setReservationID(Long reservationID) {
+        this.reservationID = reservationID;
+    }
+
+    public double getReservationValue() {
+        return reservationValue;
+    }
+
+    public void setReservationValue(double reservationValue) {
+        this.reservationValue = reservationValue;
+    }
+
+    public String getReservationStatus() {
+        return reservationStatus;
+    }
+
+    public void setReservationStatus(String reservationStatus) {
+        this.reservationStatus = reservationStatus;
+    }
+
+    public double getEligibleRefundValue() {
+        return eligibleRefundValue;
+    }
+
+    public void setEligibleRefundValue(double eligibleRefundValue) {
+        this.eligibleRefundValue = eligibleRefundValue;
     }
 }

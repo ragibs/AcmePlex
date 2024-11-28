@@ -22,24 +22,6 @@ public class PaymentInfoService {
         this.paymentInfoRepository = paymentInfoRepository;
     }
 
-
-
-//    public PaymentInfo createPayment(PaymentInfo paymentInfo) {
-//        PaymentInfo paymentObject = new PaymentInfo();
-//
-////        Optional<User> user = userRepository.findById(payment.getUser().getId());
-//
-////        Optional<User> registeredUser = registeredUserRepository.findById(payment.getUserID());
-//        paymentObject.setCardHolder(paymentInfo.getCardHolder());
-//        paymentObject.setCvv(paymentInfo.getCvv());
-//        paymentObject.setCardNumber(paymentInfo.getCardNumber());
-//        paymentObject.setExpiryDate(paymentInfo.getExpiryDate());
-//
-//        paymentObject.setRegisteredUser(paymentInfo.getRegisteredUser());
-//
-//        return paymentInfoRepository.save(paymentObject);
-//    }
-
     public PaymentInfo createPayment(PaymentInfo paymentInfo) {
         String email = paymentInfo.getRegisteredUser().getEmail();
         RegisteredUser registeredUser = registeredUserRepository.findByEmail(email)

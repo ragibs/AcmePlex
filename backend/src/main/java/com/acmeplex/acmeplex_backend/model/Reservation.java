@@ -15,7 +15,7 @@ public class Reservation {
 
     private LocalDateTime reservationDate;
 
-    private String status; // ACTIVE, CANCELLED, COMPLETED
+    private String status; // VALID, CANCELLED
 
     private String paymentConfirmation;
 

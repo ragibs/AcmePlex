@@ -36,12 +36,12 @@ public class ReservationService{
         return reservationRepository.findAll();
     }
 
-    public ReservationConfirmation createReservation(ReservationRequest reservationRequest){
+    public Long createReservation(ReservationRequest reservationRequest){
         if (!userService.userExists(reservationRequest.userEmail())){
             userService.registerUser(reservationRequest.userEmail());
         }
         Reservation reservation = new Reservation();
-        reservation.setStatus("ACTIVE");
+        reservation.setStatus("VALID");
         reservation.setUser(userService.getUser(reservationRequest.userEmail()));
         reservation.setPaymentConfirmation(reservationRequest.paymentConfirmation());
         reservation.setReservationValue(reservationRequest.reservationValue());
@@ -50,16 +50,20 @@ public class ReservationService{
         for (Long seatID: reservationRequest.seatIDList()){
             ticketService.createTicket(reservationRequest.showtimeID(), seatID, reservation.getId());
         }
-        return createReservationConfirmation(reservation.getId() - 1);
+        return reservation.getId();
     }
 
-    public ReservationConfirmation createReservationConfirmation(Long id){
-        Optional<Reservation> reservationOptional = reservationRepository.findById(id);
-        if (reservationOptional.isEmpty()){
+    public ReservationConfirmation getReservationDetails(String email, Long reservationID){
+        Optional<Reservation> reservationOptional = reservationRepository.findById(reservationID);
+        if (reservationOptional.isEmpty()) {
             throw new IllegalArgumentException("Please ensure that reservation was successfully saved");
         }
         Reservation reservation = reservationOptional.get();
-        Hibernate.initialize(reservation.getTickets());
+
+        if (!reservation.getUser().getEmail().equals(email)){
+            throw new IllegalArgumentException("This reservation ID does not belong to the given email address");
+        }
+
         List<Ticket> tickets = reservation.getTickets().stream().toList();
         Ticket ticket = tickets.get(0);
         ReservationConfirmation reservationConfirmation = new ReservationConfirmation();
@@ -68,6 +72,18 @@ public class ReservationService{
         reservationConfirmation.setShowTime(ticket.getShowtime().getStartTime());
         reservationConfirmation.setUserEmail(reservation.getUser().getEmail());
         reservationConfirmation.setTheatreName(ticket.getShowtime().getTheatre().getName());
+        reservationConfirmation.setReservationID(reservation.getId());
+        reservationConfirmation.setReservationValue(reservation.getReservationValue());
+        reservationConfirmation.setReservationStatus(reservation.getStatus());
+
+        double eligibleRefundValue = reservation.getReservationValue();
+        if (reservation.getStatus().equals("CANCELLED")) {
+            eligibleRefundValue = 0;
+        } else if (!(reservation.getUser() instanceof RegisteredUser)) {
+            eligibleRefundValue *= 0.85;
+        }
+
+        reservationConfirmation.setEligibleRefundValue(eligibleRefundValue);
 
         for (Ticket ticketItem: tickets){
             reservationConfirmation.addSeatName(ticketItem.getSeat().getSeatNumber());
