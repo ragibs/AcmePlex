@@ -10,7 +10,7 @@ public class RegisteredUser extends User {
 
     private String password;
 
-    private String email;
+//    private String email;
 
     @NotNull
     private String name;
@@ -31,5 +31,16 @@ public class RegisteredUser extends User {
         this.name = name;
     }
 
+    @Override
+    public void update(String announcement) {
+        // Registered users receive the announcement earlier (immediate email)
+        sendEmail(announcement);
+    }
+
+    @Override
+    public void sendEmail(String announcement) {
+        // Send email to registered user immediately
+        System.out.println("Registered User Email (Early): " + announcement);
+    }
 
 }
