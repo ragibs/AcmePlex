@@ -30,7 +30,7 @@ function App() {
         path="/bookingconfirmation/:id/:email"
         element={<BookingConfirmation />}
       />
-      <Route path="/signedinpurchase" element={<SignedInPurchase />} />
+      <Route path="/signedinpurchase/:email" element={<SignedInPurchase />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

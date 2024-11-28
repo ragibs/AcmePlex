@@ -5,12 +5,17 @@ import MovieCard from "../components/MovieCard";
 import Footer from "../components/Footer";
 import { Movie, Theatre } from "../types";
 import api from "../api/apiConfig";
+import { useMovieContext } from "../context/MovieContext";
+import Cookies from "js-cookie";
 
 export const Home = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [theatres, setTheatres] = useState<Theatre[]>([]);
+  const { clearState } = useMovieContext();
 
   useEffect(() => {
+    clearState();
+    Cookies.remove("user");
     const fetchMovies = async () => {
       try {
         const response = await api.get("/movies");

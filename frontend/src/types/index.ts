@@ -50,3 +50,10 @@ export interface SeatsResponse {
   booked: Seat[];
   available: Seat[];
 }
+
+export interface PaymentInfo {
+  cardHolder: string;
+  cardNumber: string;
+  cvv: string;
+  expiryDate: string;
+}

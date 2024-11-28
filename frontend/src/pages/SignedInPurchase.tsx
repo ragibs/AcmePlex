@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -12,20 +12,18 @@ import {
   ChevronDown,
   ChevronUp,
   Tag,
+  Cookie,
+  Loader,
 } from "lucide-react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { generatePaymentConfirmationNumber } from "../utils/generatePaymentConfirmationNumber";
+import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
+import { useMovieContext } from "../context/MovieContext";
+import api from "../api/apiConfig";
+import PacmanLoader from "react-spinners/PacmanLoader";
+import Cookies from "js-cookie";
+import { PaymentInfo } from "../types";
 
-// Mock data for selected movie and showtime
-const selectedMovie = {
-  title: "Inception",
-  poster: "/placeholder.svg?height=300&width=200",
-  theater: "Cineplex Downtown",
-  date: "2023-05-20",
-  time: "7:30 PM",
-  seats: ["A1", "A2", "A3"],
-  totalPrice: 30.0,
-};
-
-// Mock data for user and payment method
 const user = {
   email: "user@example.com",
   paymentMethod: { id: 1, last4: "1234", expiry: "12/24", type: "Visa" },
@@ -33,6 +31,8 @@ const user = {
 
 export default function SignedInPurchase() {
   const [useSavedPayment, setUseSavedPayment] = useState(true);
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
+
   const [newCardName, setNewCardName] = useState("");
   const [newCardNumber, setNewCardNumber] = useState("");
   const [newCardExpiry, setNewCardExpiry] = useState("");
@@ -42,6 +42,60 @@ export default function SignedInPurchase() {
     code: string;
     value: number;
   } | null>(null);
+  const { email } = useParams();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [formError, setFormError] = React.useState<string | null>(null);
+  const { state } = useMovieContext();
+  const navigate = useNavigate();
+  const location = useLocation();
+  usePreventPageRefresh(
+    "Are you sure you want to leave? Your progress may not be saved."
+  );
+
+  useEffect(() => {
+    if (
+      !location.state ||
+      location.state.from !== "/confirmtickets" ||
+      !state.moviename ||
+      !Cookies.get("user") ||
+      null
+    ) {
+      setError(
+        "It seems you're attempting to access the page without selecting a showtime. Please select a showtime before proceeding."
+      );
+      setTimeout(() => {
+        navigate("/");
+      }, 5000);
+    } else {
+      fetchPaymentInfo(email);
+    }
+  }, [location, navigate]);
+
+  const fetchPaymentInfo = async (email: string | undefined) => {
+    try {
+      const token = Cookies.get("user");
+      const cleanToken = token?.replace(/^"|"$/g, "");
+      if (!token) {
+        throw new Error("User token is missing");
+      }
+
+      const response = await api.get(`/payment/${email}`, {
+        headers: {
+          Authorization: `Bearer ${cleanToken}`,
+        },
+      });
+
+      if (response.status === 200) {
+        setPaymentInfo(response.data);
+      } else {
+        console.error("Failed to fetch payment info:", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching payment info:", error);
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -60,10 +114,32 @@ export default function SignedInPurchase() {
     visible: { y: 0, opacity: 1 },
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Purchase submitted");
+    setIsSubmitting(true);
+    setFormError(null);
+    const payload = {
+      showtimeID: state.showtimeId,
+      seatIDList: state.seatIds,
+      userEmail: email,
+      paymentConfirmation: generatePaymentConfirmationNumber(),
+    };
+    try {
+      const response = await api.post("/reservation/create", payload);
+      if (response.status === 201) {
+        navigate(
+          `/bookingconfirmation/${response.data.id}/${response.data.user.email}`
+        );
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        setFormError(error.response.data);
+      } else {
+        setFormError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const togglePaymentMethod = () => {
@@ -81,8 +157,28 @@ export default function SignedInPurchase() {
   };
 
   const totalAfterDiscount = appliedCoupon
-    ? Math.max(selectedMovie.totalPrice - appliedCoupon.value, 0)
-    : selectedMovie.totalPrice;
+    ? Math.max(state.totalprice - appliedCoupon.value, 0)
+    : state.totalprice;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <PacmanLoader color="#0891b2" size={50} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+        <h1 className="text-3xl font-bold mb-4">Error</h1>
+        <p className="text-lg text-gray-400 mb-6">{error}</p>
+        <p className="text-sm text-gray-500">
+          Redirecting to the homepage in 5 seconds...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -104,35 +200,33 @@ export default function SignedInPurchase() {
           <motion.div className="lg:w-1/3" variants={itemVariants}>
             <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
               <img
-                src={selectedMovie.poster}
-                alt={selectedMovie.title}
+                src={state.poster}
+                alt={state.moviename}
                 width="200"
                 height="300"
                 className="mx-auto mb-4 rounded-lg"
               />
-              <h2 className="text-2xl font-medium mb-4">
-                {selectedMovie.title}
-              </h2>
+              <h2 className="text-2xl font-medium mb-4">{state.moviename}</h2>
               <div className="space-y-2">
                 <div className="flex items-center">
                   <MapPin className="text-primary-500 mr-2" size={20} />
-                  <span>{selectedMovie.theater}</span>
+                  <span>{state.theatre}</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="text-primary-500 mr-2" size={20} />
-                  <span>{selectedMovie.date}</span>
+                  <span>{state.date}</span>
                 </div>
                 <div className="flex items-center">
                   <Clock className="text-primary-500 mr-2" size={20} />
-                  <span>{selectedMovie.time}</span>
+                  <span>{state.showtime}</span>
                 </div>
                 <div>
                   <span className="font-medium">Seats:</span>{" "}
-                  {selectedMovie.seats.join(", ")}
+                  {state.seats.join(", ")}
                 </div>
                 <div>
                   <span className="font-medium">Total Price:</span> $
-                  {selectedMovie.totalPrice.toFixed(2)}
+                  {state.totalprice.toFixed(2)}
                 </div>
                 {appliedCoupon && (
                   <div className="text-primary-400">
@@ -162,7 +256,7 @@ export default function SignedInPurchase() {
                     <input
                       type="email"
                       id="email"
-                      value={user.email}
+                      value={email}
                       className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
                       disabled
                     />
@@ -191,14 +285,11 @@ export default function SignedInPurchase() {
                       <div className="flex items-center">
                         <CreditCard className="mr-3" size={20} />
                         <span>
-                          {user.paymentMethod.type} ending in{" "}
-                          {user.paymentMethod.last4}
+                          Credit ending in {paymentInfo?.cardNumber.slice(12)}
                         </span>
                       </div>
                       <div className="flex items-center">
-                        <span className="mr-2">
-                          {user.paymentMethod.expiry}
-                        </span>
+                        <span className="mr-2">{paymentInfo?.expiryDate}</span>
                         {useSavedPayment && (
                           <span className="text-xs bg-primary-600 px-2 py-1 rounded-full">
                             Selected
@@ -228,7 +319,7 @@ export default function SignedInPurchase() {
 
                 <div
                   className={`mb-6 space-y-4 ${
-                    useSavedPayment ? "opacity-50 pointer-events-none" : ""
+                    useSavedPayment ? "opacity-50 pointer-events-none " : ""
                   }`}
                 >
                   <div>
@@ -240,12 +331,13 @@ export default function SignedInPurchase() {
                     </label>
                     <div className="relative">
                       <input
+                        disabled={isSubmitting}
                         type="text"
                         id="newCardName"
                         value={newCardName}
                         onChange={(e) => setNewCardName(e.target.value)}
                         className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                        required
+                        required={!useSavedPayment} // Conditionally set required
                       />
                       <User
                         className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -262,12 +354,13 @@ export default function SignedInPurchase() {
                     </label>
                     <div className="relative">
                       <input
+                        disabled={isSubmitting}
                         type="text"
                         id="newCardNumber"
                         value={newCardNumber}
                         onChange={(e) => setNewCardNumber(e.target.value)}
                         className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                        required
+                        required={!useSavedPayment} // Conditionally set required
                       />
                       <CreditCard
                         className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -284,13 +377,14 @@ export default function SignedInPurchase() {
                         Expiry Date
                       </label>
                       <input
+                        disabled={isSubmitting}
                         type="text"
                         id="newCardExpiry"
                         value={newCardExpiry}
                         onChange={(e) => setNewCardExpiry(e.target.value)}
                         className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                         placeholder="MM/YY"
-                        required
+                        required={!useSavedPayment} // Conditionally set required
                       />
                     </div>
                     <div className="w-1/2">
@@ -301,12 +395,13 @@ export default function SignedInPurchase() {
                         CCV
                       </label>
                       <input
+                        disabled={isSubmitting}
                         type="text"
                         id="newCardCCV"
                         value={newCardCCV}
                         onChange={(e) => setNewCardCCV(e.target.value)}
                         className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        required
+                        required={!useSavedPayment} // Conditionally set required
                       />
                     </div>
                   </div>
@@ -322,6 +417,7 @@ export default function SignedInPurchase() {
                   <div className="flex space-x-2">
                     <div className="relative flex-grow">
                       <input
+                        disabled={isSubmitting}
                         type="text"
                         id="couponCode"
                         value={couponCode}
@@ -338,6 +434,7 @@ export default function SignedInPurchase() {
                       type="button"
                       onClick={applyCoupon}
                       className="bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+                      disabled={isSubmitting}
                     >
                       Apply
                     </button>
@@ -353,10 +450,23 @@ export default function SignedInPurchase() {
                 <button
                   type="submit"
                   className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"
+                  disabled={isSubmitting}
                 >
-                  Complete Purchase
+                  {isSubmitting ? (
+                    <>
+                      <Loader className="animate-spin mr-2" size={20} />{" "}
+                      Processing...
+                    </>
+                  ) : (
+                    "Complete Purchase"
+                  )}
                 </button>
               </form>
+              {formError && (
+                <div className=" text-red-500 text-center py-2 px-4 rounded-md mb-4">
+                  {formError}
+                </div>
+              )}
             </div>
           </motion.div>
         </div>

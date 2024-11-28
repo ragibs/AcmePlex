@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -9,11 +11,13 @@ import {
   Check,
   Loader,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import api from "../api/apiConfig";
+import { useMovieContext } from "../context/MovieContext";
+import PacmanLoader from "react-spinners/PacmanLoader";
 
 const registerSchema = z
   .object({
@@ -42,6 +46,9 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [expiryDate, setExpiryDate] = useState("");
   const {
     register,
@@ -52,21 +59,37 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
     mode: "onChange",
   });
+  const { state } = useMovieContext();
 
   const acceptTerms = watch("acceptTerms");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (
+      !location.state ||
+      location.state.from !== "/confirmtickets" ||
+      !state.moviename
+    ) {
+      setError(
+        "It seems you’re attempting to access the page without selecting a showtime. Please select a showtime before proceeding."
+      );
+      setTimeout(() => {
+        navigate("/");
+      }, 5000);
+    }
     const oneYearFromNow = new Date();
     oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
     setExpiryDate(oneYearFromNow.toISOString().split("T")[0]);
-  }, []);
-  const navigate = useNavigate();
+  }, [location, navigate]);
+
   const [formError, setFormError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(5);
 
   const onSubmit: SubmitHandler<RegisterFormData> = async (data) => {
     setIsSubmitting(true);
-    // Combine `registeredUser` and `paymentInfo` into the request payload
     const userRegistrationPayload = {
       registeredUser: {
         email: data.email,
@@ -89,13 +112,24 @@ export default function Register() {
 
       if (registerResponse.status === 201) {
         console.log("User registered successfully with payment information");
+        setRegistrationSuccess(true);
 
-        navigate("/confirmtickets");
+        // Start countdown
+        let timer = 5;
+        const countdownInterval = setInterval(() => {
+          timer -= 1;
+          setCountdown(timer);
+          if (timer === 0) {
+            clearInterval(countdownInterval);
+            navigate("/confirmtickets");
+          }
+        }, 1000);
       } else {
         console.warn(
           "Registration failed with status:",
           registerResponse.status
         );
+        setFormError("Registration failed. Please try again.");
       }
     } catch (error: any) {
       if (error.response && error.response.data) {
@@ -124,6 +158,49 @@ export default function Register() {
     hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1 },
   };
+
+  if (registrationSuccess) {
+    return (
+      <motion.div
+        className="min-h-screen bg-gray-900 text-white flex items-center justify-center"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <div className="text-center">
+          <motion.h1
+            className="text-4xl font-bold mb-4"
+            variants={itemVariants}
+          >
+            Registration Successful!
+          </motion.h1>
+          <motion.p className="text-xl mb-4" variants={itemVariants}>
+            Redirecting to login page in {countdown} seconds...
+          </motion.p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <PacmanLoader color="#0891b2" size={50} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+        <h1 className="text-3xl font-bold mb-4">Error</h1>
+        <p className="text-lg text-gray-400 mb-6">{error}</p>
+        <p className="text-sm text-gray-500">
+          Redirecting to the homepage in 5 seconds...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -411,7 +488,7 @@ export default function Register() {
             </div>
           </form>
           {formError && (
-            <div className=" text-red-500 text-center py-2 px-4 rounded-md mb-4">
+            <div className="text-red-500 text-center py-2 px-4 rounded-md mb-4">
               {formError}
             </div>
           )}
