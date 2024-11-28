@@ -1,40 +1,80 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ChevronRight,
   Minus,
   Plus,
   Calendar,
-  Clock,
+  Info,
   MapPin,
   DollarSign,
 } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import api from "../api/apiConfig";
+import PacmanLoader from "react-spinners/PacmanLoader";
+import { useMovieContext } from "../context/MovieContext";
+import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
 
-const ROWS = "ABCDEFGHIJ".split("");
-const SEATS_PER_ROW = 10;
 const TICKET_PRICE = 10;
 
-// Mock data for movie information
-const movieInfo = {
-  title: "Inception",
-  poster:
-    "https://i.ebayimg.com/00/s/MTYwMFgxMDk3/z/LlUAAOSwm8VUwoRL/$_57.JPG?set_id=880000500F",
-  rating: 8.8,
-  duration: "2h 28min",
-  genre: "Sci-Fi, Action, Adventure",
-  theater: "Cineplex Downtown",
-  date: "2023-05-20",
-  time: "7:30 PM",
-};
+interface Seat {
+  id: number;
+  seatNumber: string;
+  booked: boolean;
+}
+
+interface SeatsResponse {
+  booked: Seat[];
+  available: Seat[];
+}
 
 export default function SeatSelection() {
   const [ticketCount, setTicketCount] = useState(0);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [seats, setSeats] = useState<SeatsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { state, updateState } = useMovieContext();
+  usePreventPageRefresh(
+    "Are you sure you want to leave? Your progress may not be saved."
+  );
 
   useEffect(() => {
+    const fetchSeats = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = api.get(`/showtime/${id}/seats`);
+
+        setSeats((await response).data);
+      } catch (err) {
+        setError("Failed to fetch seats.");
+        setTimeout(() => {
+          navigate("/");
+        }, 5000);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSeats();
+  }, [id]);
+
+  useEffect(() => {
+    if (!state.moviename) {
+      setError(
+        "It seems you’re attempting to access the page without selecting a showtime. Please select a showtime before proceeding."
+      );
+      setTimeout(() => {
+        navigate("/");
+      }, 5000);
+    }
     setSelectedSeats([]);
     setTotalPrice(ticketCount * TICKET_PRICE);
   }, [ticketCount]);
@@ -64,6 +104,70 @@ export default function SeatSelection() {
     }
   };
 
+  const renderSeats = () => {
+    if (!seats) return null;
+
+    const allSeats = [...seats.available, ...seats.booked].sort((a, b) =>
+      a.seatNumber.localeCompare(b.seatNumber)
+    );
+
+    const rows = Array.from(
+      new Set(allSeats.map((seat) => seat.seatNumber[0]))
+    );
+
+    return rows.map((row) => (
+      <div key={row} className="flex justify-center gap-1">
+        <div className="w-6 text-center">{row}</div>
+        {allSeats
+          .filter((seat) => seat.seatNumber.startsWith(row))
+          .map((seat) => (
+            <button
+              key={seat.id}
+              onClick={() => !seat.booked && handleSeatClick(seat.seatNumber)}
+              className={`w-8 h-8 rounded-lg ${
+                seat.booked
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : selectedSeats.includes(seat.seatNumber)
+                  ? "bg-primary-500"
+                  : "bg-gray-600 hover:bg-gray-500"
+              } transition-colors`}
+              disabled={
+                seat.booked ||
+                (selectedSeats.length === ticketCount &&
+                  !selectedSeats.includes(seat.seatNumber))
+              }
+            />
+          ))}
+      </div>
+    ));
+  };
+
+  const handleNext = () => {
+    updateState("totalprice", totalPrice);
+    updateState("seats", selectedSeats);
+    navigate("/confirmtickets");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <PacmanLoader color="#0891b2" size={50} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+        <h1 className="text-3xl font-bold mb-4">Error</h1>
+        <p className="text-lg text-gray-400 mb-6">{error}</p>
+        <p className="text-sm text-gray-500">
+          Redirecting to the homepage in 5 seconds...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       className="min-h-screen bg-gray-900 text-white"
@@ -76,29 +180,29 @@ export default function SeatSelection() {
         <motion.div className="mb-8" variants={itemVariants}>
           <div className="bg-gray-800 rounded-lg p-4 flex items-center">
             <img
-              src={movieInfo.poster}
-              alt={movieInfo.title}
-              width={100}
-              height={150}
+              src={state.poster}
+              alt={state.moviename}
+              width="100"
+              height="150"
               className="rounded-lg mr-4"
             />
             <div>
-              <h1 className="text-3xl font-light mb-2">{movieInfo.title}</h1>
-              <p className="text-sm text-gray-400 mb-2">{movieInfo.genre}</p>
+              <h1 className="text-3xl font-light mb-2">{state.moviename}</h1>
+              {/* <p className="text-sm text-gray-400 mb-2">{movieInfo.genre}</p> */}
               <div className="flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center">
-                  <Clock className="text-primary-500 mr-2" size={16} />
-                  <span>{movieInfo.duration}</span>
+                  <Info className="text-primary-500 mr-2" size={16} />
+                  <span>{state.genre}</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="text-primary-500 mr-2" size={16} />
                   <span>
-                    {movieInfo.date} at {movieInfo.time}
+                    {state.date} at {state.showtime}
                   </span>
                 </div>
                 <div className="flex items-center">
                   <MapPin className="text-primary-500 mr-2" size={16} />
-                  <span>{movieInfo.theater}</span>
+                  <span>{state.theatre}</span>
                 </div>
               </div>
             </div>
@@ -149,30 +253,7 @@ export default function SeatSelection() {
                   ticketCount === 0 ? "opacity-50 pointer-events-none" : ""
                 }`}
               >
-                {ROWS.map((row) => (
-                  <div key={row} className="flex justify-center gap-1">
-                    <div className="w-6 text-center">{row}</div>
-                    {Array.from({ length: SEATS_PER_ROW }, (_, i) => {
-                      const seat = `${row}${i + 1}`;
-                      return (
-                        <button
-                          key={seat}
-                          onClick={() => handleSeatClick(seat)}
-                          className={`w-8 h-8 rounded-lg ${
-                            selectedSeats.includes(seat)
-                              ? "bg-primary-500"
-                              : "bg-gray-600 hover:bg-gray-500"
-                          } transition-colors`}
-                          disabled={
-                            ticketCount === 0 ||
-                            (selectedSeats.length === ticketCount &&
-                              !selectedSeats.includes(seat))
-                          }
-                        />
-                      );
-                    })}
-                  </div>
-                ))}
+                {renderSeats()}
               </div>
               <div className="mt-4 flex justify-center gap-4 text-sm">
                 <div className="flex items-center">
@@ -190,7 +271,11 @@ export default function SeatSelection() {
               </div>
             </div>
             <div className="mt-4 text-center">
-              Selected Seats: {selectedSeats.join(", ") || "None"}
+              <p>Selected Seats: {selectedSeats.join(", ") || "None"}</p>
+              <p>
+                * Please select the number of tickets before choosing your
+                seats.
+              </p>
             </div>
           </motion.div>
         </div>
@@ -210,6 +295,7 @@ export default function SeatSelection() {
               : ""
           }`}
           disabled={selectedSeats.length !== ticketCount}
+          onClick={handleNext}
         >
           Confirm Selection
           <ChevronRight className="ml-2" size={20} />

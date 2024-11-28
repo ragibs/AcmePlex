@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -12,35 +12,77 @@ import {
   Lock,
   Tag,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
+import PacmanLoader from "react-spinners/PacmanLoader";
+import { useMovieContext } from "../context/MovieContext";
+import { z } from "zod";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { generatePaymentConfirmationNumber } from "../utils/generatePaymentConfirmationNumber";
+import api from "../api/apiConfig";
 
-// Mock data for selected movie and showtime
-const selectedMovie = {
-  title: "Inception",
-  poster: "/placeholder.svg?height=300&width=200",
-  theater: "Cineplex Downtown",
-  date: "2023-05-20",
-  time: "7:30 PM",
-  seats: ["A1", "A2", "A3"],
-  totalPrice: 30.0,
-};
+const guestSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  cardName: z.string().min(1, "Cardholder name is required"),
+  cardNumber: z.string().regex(/^\d{16}$/, "Card number must be 16 digits"),
+  cardExpiry: z
+    .string()
+    .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Invalid expiry date format (MM/YY)"),
+  cardCCV: z.string().regex(/^\d{3}$/, "CCV must be 3 digits"),
+});
+
+const signinSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type GuestFormData = z.infer<typeof guestSchema>;
+type SigninFormData = z.infer<typeof signinSchema>;
 
 export default function ConfirmTickets() {
-  const [checkoutMethod, setCheckoutMethod] = useState<"guest" | "signin">(
-    "guest"
+  const { state, updateState } = useMovieContext();
+  const [checkoutMethod, setCheckoutMethod] = React.useState<
+    "guest" | "signin"
+  >("guest");
+  usePreventPageRefresh(
+    "Are you sure you want to leave? Your progress may not be saved."
   );
-  const [email, setEmail] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCCV, setCardCCV] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [couponCode, setCouponCode] = React.useState("");
+  const [appliedCoupon, setAppliedCoupon] = React.useState<{
     code: string;
     value: number;
   } | null>(null);
+  const navigate = useNavigate();
+
+  const {
+    register: registerGuest,
+    handleSubmit: handleSubmitGuest,
+    formState: { errors: errorsGuest },
+  } = useForm<GuestFormData>({
+    resolver: zodResolver(guestSchema),
+  });
+
+  const {
+    register: registerSignin,
+    handleSubmit: handleSubmitSignin,
+    formState: { errors: errorsSignin },
+  } = useForm<SigninFormData>({
+    resolver: zodResolver(signinSchema),
+  });
+
+  useEffect(() => {
+    if (!state.moviename) {
+      setError(
+        "It seems you're attempting to access the page without selecting a showtime. Please select a showtime before proceeding."
+      );
+      setTimeout(() => {
+        navigate("/");
+      }, 5000);
+    }
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -59,10 +101,24 @@ export default function ConfirmTickets() {
     visible: { y: 0, opacity: 1 },
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission logic here
-    console.log("Form submitted");
+  const onSubmitGuest = async (data: GuestFormData) => {
+    const payload = {
+      showtimeID: state.showtimeId,
+      seatIDList: state.seats,
+      userEmail: data.email,
+      paymentConfirmation: generatePaymentConfirmationNumber(),
+    };
+    try {
+      const response = await api.post("/reservation/create", payload);
+    } catch (error) {
+      console.log(error);
+    } finally {
+    }
+  };
+
+  const onSubmitSignin: SubmitHandler<SigninFormData> = (data) => {
+    console.log("Signin form submitted", data);
+    // Handle signin and purchase logic here
   };
 
   const applyCoupon = () => {
@@ -76,8 +132,28 @@ export default function ConfirmTickets() {
   };
 
   const totalAfterDiscount = appliedCoupon
-    ? Math.max(selectedMovie.totalPrice - appliedCoupon.value, 0)
-    : selectedMovie.totalPrice;
+    ? Math.max(state.totalprice - appliedCoupon.value, 0)
+    : state.totalprice;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <PacmanLoader color="#0891b2" size={50} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+        <h1 className="text-3xl font-bold mb-4">Error</h1>
+        <p className="text-lg text-gray-400 mb-6">{error}</p>
+        <p className="text-sm text-gray-500">
+          Redirecting to the homepage in 5 seconds...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -99,34 +175,32 @@ export default function ConfirmTickets() {
           <motion.div className="lg:w-1/3" variants={itemVariants}>
             <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
               <img
-                src={selectedMovie.poster}
-                alt={selectedMovie.title}
+                src={state.poster}
+                alt={state.moviename}
                 style={{ width: "200px", height: "300px" }}
                 className="mx-auto mb-4 rounded-lg"
               />
-              <h2 className="text-2xl font-medium mb-4">
-                {selectedMovie.title}
-              </h2>
+              <h2 className="text-2xl font-medium mb-4">{state.moviename}</h2>
               <div className="space-y-2">
                 <div className="flex items-center">
                   <MapPin className="text-primary-500 mr-2" size={20} />
-                  <span>{selectedMovie.theater}</span>
+                  <span>{state.theatre}</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="text-primary-500 mr-2" size={20} />
-                  <span>{selectedMovie.date}</span>
+                  <span>{state.date}</span>
                 </div>
                 <div className="flex items-center">
                   <Clock className="text-primary-500 mr-2" size={20} />
-                  <span>{selectedMovie.time}</span>
+                  <span>{state.showtime}</span>
                 </div>
                 <div>
                   <span className="font-medium">Seats:</span>{" "}
-                  {selectedMovie.seats.join(", ")}
+                  {state.seats.join(", ")}
                 </div>
                 <div>
                   <span className="font-medium">Total Price:</span> $
-                  {selectedMovie.totalPrice.toFixed(2)}
+                  {state.totalprice.toFixed(2)}
                 </div>
                 {appliedCoupon && (
                   <div className="text-primary-400">
@@ -167,205 +241,189 @@ export default function ConfirmTickets() {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit}>
-                {checkoutMethod === "guest" ? (
-                  <>
-                    <div className="mb-4">
-                      <label
-                        htmlFor="email"
-                        className="block text-sm font-medium mb-2"
-                      >
-                        Email
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="email"
-                          id="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                          required
-                        />
-                        <Mail
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                          size={20}
-                        />
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label
-                        htmlFor="cardName"
-                        className="block text-sm font-medium mb-2"
-                      >
-                        Name on Card
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          id="cardName"
-                          value={cardName}
-                          onChange={(e) => setCardName(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                          required
-                        />
-                        <User
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                          size={20}
-                        />
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label
-                        htmlFor="cardNumber"
-                        className="block text-sm font-medium mb-2"
-                      >
-                        Card Number
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          id="cardNumber"
-                          value={cardNumber}
-                          onChange={(e) => setCardNumber(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                          required
-                        />
-                        <CreditCard
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                          size={20}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex mb-4 space-x-4">
-                      <div className="w-1/2">
-                        <label
-                          htmlFor="cardExpiry"
-                          className="block text-sm font-medium mb-2"
-                        >
-                          Expiry Date
-                        </label>
-                        <input
-                          type="text"
-                          id="cardExpiry"
-                          value={cardExpiry}
-                          onChange={(e) => setCardExpiry(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          placeholder="MM/YY"
-                          required
-                        />
-                      </div>
-                      <div className="w-1/2">
-                        <label
-                          htmlFor="cardCCV"
-                          className="block text-sm font-medium mb-2"
-                        >
-                          CCV
-                        </label>
-                        <input
-                          type="text"
-                          id="cardCCV"
-                          value={cardCCV}
-                          onChange={(e) => setCardCCV(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="mb-4">
-                      <label
-                        htmlFor="username"
-                        className="block text-sm font-medium mb-2"
-                      >
-                        Username
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          id="username"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                          required
-                        />
-                        <User
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                          size={20}
-                        />
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label
-                        htmlFor="password"
-                        className="block text-sm font-medium mb-2"
-                      >
-                        Password
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="password"
-                          id="password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                          required
-                        />
-                        <Lock
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                          size={20}
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-                <div className="mb-6">
-                  <label
-                    htmlFor="couponCode"
-                    className="block text-sm font-medium mb-2"
-                  >
-                    Coupon Code
-                  </label>
-                  <div className="flex space-x-2">
-                    <div className="relative flex-grow">
+              {checkoutMethod === "guest" ? (
+                <form onSubmit={handleSubmitGuest(onSubmitGuest)}>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium mb-2"
+                    >
+                      Email
+                    </label>
+                    <div className="relative">
                       <input
-                        type="text"
-                        id="couponCode"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
+                        type="email"
+                        id="email"
+                        {...registerGuest("email")}
                         className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                        placeholder="Enter coupon code"
                       />
-                      <Tag
+                      <Mail
                         className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                         size={20}
                       />
                     </div>
-                    <button
-                      type="button"
-                      onClick={applyCoupon}
-                      className="bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
-                    >
-                      Apply
-                    </button>
+                    {errorsGuest.email && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errorsGuest.email.message}
+                      </p>
+                    )}
                   </div>
-                  {appliedCoupon && (
-                    <p className="mt-2 text-sm text-primary-400">
-                      Coupon {appliedCoupon.code} applied: $
-                      {appliedCoupon.value} off
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"
-                >
-                  {checkoutMethod === "guest"
-                    ? "Complete Purchase"
-                    : "Sign In and Purchase"}
-                </button>
-                {checkoutMethod === "signin" && (
+                  <div className="mb-4">
+                    <label
+                      htmlFor="cardName"
+                      className="block text-sm font-medium mb-2"
+                    >
+                      Name on Card
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="cardName"
+                        {...registerGuest("cardName")}
+                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                      />
+                      <User
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                    </div>
+                    {errorsGuest.cardName && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errorsGuest.cardName.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="cardNumber"
+                      className="block text-sm font-medium mb-2"
+                    >
+                      Card Number
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="cardNumber"
+                        {...registerGuest("cardNumber")}
+                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                      />
+                      <CreditCard
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                    </div>
+                    {errorsGuest.cardNumber && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errorsGuest.cardNumber.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex mb-4 space-x-4">
+                    <div className="w-1/2">
+                      <label
+                        htmlFor="cardExpiry"
+                        className="block text-sm font-medium mb-2"
+                      >
+                        Expiry Date
+                      </label>
+                      <input
+                        type="text"
+                        id="cardExpiry"
+                        {...registerGuest("cardExpiry")}
+                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="MM/YY"
+                      />
+                      {errorsGuest.cardExpiry && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errorsGuest.cardExpiry.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="w-1/2">
+                      <label
+                        htmlFor="cardCCV"
+                        className="block text-sm font-medium mb-2"
+                      >
+                        CCV
+                      </label>
+                      <input
+                        type="text"
+                        id="cardCCV"
+                        {...registerGuest("cardCCV")}
+                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                      {errorsGuest.cardCCV && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errorsGuest.cardCCV.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"
+                  >
+                    Complete Purchase
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleSubmitSignin(onSubmitSignin)}>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="username"
+                      className="block text-sm font-medium mb-2"
+                    >
+                      Username
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="username"
+                        {...registerSignin("username")}
+                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                      />
+                      <User
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                    </div>
+                    {errorsSignin.username && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errorsSignin.username.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium mb-2"
+                    >
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        id="password"
+                        {...registerSignin("password")}
+                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                      />
+                      <Lock
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                    </div>
+                    {errorsSignin.password && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errorsSignin.password.message}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"
+                  >
+                    Sign In and Purchase
+                  </button>
                   <p className="mt-4 text-center text-sm">
                     Don't have an account?{" "}
                     <Link
@@ -375,8 +433,8 @@ export default function ConfirmTickets() {
                       Click here to register
                     </Link>
                   </p>
-                )}
-              </form>
+                </form>
+              )}
             </div>
           </motion.div>
         </div>

@@ -34,8 +34,19 @@ export interface TheatreWithMovies {
 export interface MovieWithShowtimes {
   id: string;
   title: string;
-  poster: string; // Movie duration in minutes
+  poster: string;
   genre: string;
   duration: string;
   showtimes: Showtime[];
+}
+
+export interface Seat {
+  id: number;
+  seatNumber: string;
+  booked: boolean;
+}
+
+export interface SeatsResponse {
+  booked: Seat[];
+  available: Seat[];
 }

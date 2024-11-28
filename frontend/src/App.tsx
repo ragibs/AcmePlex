@@ -10,7 +10,6 @@ import Register from "./pages/Register";
 import CheckBalance from "./pages/CheckBalance";
 import SignedInPurchase from "./pages/SignedInPurchase";
 import { Routes, Route } from "react-router-dom";
-import { Check } from "lucide-react";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import NotFound from "./pages/NotFound";
 

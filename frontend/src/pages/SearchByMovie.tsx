@@ -3,24 +3,32 @@
 import { useState, useEffect } from "react";
 import { Info, Clock, Calendar, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../api/apiConfig";
 import { MovieWithTheatres } from "../types";
 import { formatTimeToAmPm } from "../utils/formatTimeToAmPm";
-import { Link } from "react-router-dom";
 import PacmanLoader from "react-spinners/PacmanLoader";
+import { useMovieContext } from "../context/MovieContext";
 
 export default function SearchByMovie() {
   const { id, date } = useParams();
   const navigate = useNavigate();
+  const { clearState, updateState } = useMovieContext();
 
   const [movieWithTheatres, setMovieWithTheatres] =
     useState<MovieWithTheatres | null>(null);
+  // To toggle active showtimes
   const [selectedShowtime, setSelectedShowtime] = useState<string | null>(null);
+  // To update the context with the showtime
+  const [movieTime, setMovieTime] = useState<string | null>(null);
+
+  const [theaterName, setTheaterName] = useState<string | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    clearState();
     const fetchTheatres = async () => {
       setIsLoading(true);
       setError(null);
@@ -54,8 +62,25 @@ export default function SearchByMovie() {
     fetchTheatres();
   }, [id, date, navigate]);
 
-  const handleShowtimeSelect = (showtimeId: string) => {
+  const handleShowtimeSelect = (
+    showtimeId: string,
+    theaterName: string,
+    movieTime: string
+  ) => {
     setSelectedShowtime(showtimeId);
+    setTheaterName(theaterName);
+    setMovieTime(formatTimeToAmPm(movieTime));
+  };
+
+  const handleNext = () => {
+    updateState("moviename", movieWithTheatres?.title);
+    updateState("poster", movieWithTheatres?.poster);
+    updateState("genre", movieWithTheatres?.genre);
+    updateState("showtime", movieTime);
+    updateState("date", date);
+    updateState("theatre", theaterName);
+    updateState("showtimeId", selectedShowtime);
+    navigate(`/seatselection/${selectedShowtime}`);
   };
 
   const containerVariants = {
@@ -84,7 +109,6 @@ export default function SearchByMovie() {
   }
 
   if (error) {
-    // Show error message with redirect timer
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
         <h1 className="text-3xl font-bold mb-4">Error</h1>
@@ -188,7 +212,13 @@ export default function SearchByMovie() {
                       {theater.showtimes?.map((showtime) => (
                         <button
                           key={showtime.id}
-                          onClick={() => handleShowtimeSelect(showtime.id)}
+                          onClick={() =>
+                            handleShowtimeSelect(
+                              showtime.id,
+                              theater.name,
+                              showtime.startTime
+                            )
+                          }
                           className={`px-4 py-2 ${
                             selectedShowtime === showtime.id
                               ? "bg-primary-600"
@@ -216,17 +246,16 @@ export default function SearchByMovie() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <Link to={`/seatselection/${selectedShowtime}`}>
-          <button
-            className={`bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center ${
-              !selectedShowtime ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={!selectedShowtime}
-          >
-            Next: Seat Selection
-            <ChevronRight className="ml-2" size={20} />
-          </button>
-        </Link>
+        <button
+          className={`bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center ${
+            !selectedShowtime ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          disabled={!selectedShowtime}
+          onClick={handleNext}
+        >
+          Next: Seat Selection
+          <ChevronRight className="ml-2" size={20} />
+        </button>
       </motion.div>
     </motion.div>
   );

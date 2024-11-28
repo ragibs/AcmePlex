@@ -1,22 +1,52 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, CreditCard, Calendar, User, Check } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import api from "../api/apiConfig";
+
+const registerSchema = z
+  .object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+    name: z.string().min(1, "Name is required"),
+    cardHolder: z.string().min(1, "Cardholder name is required"),
+    cardNumber: z.string().regex(/^\d{16}$/, "Card number must be 16 digits"),
+    cardExpiry: z
+      .string()
+      .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Invalid expiry date format (MM/YY)"),
+    cardCCV: z.string().regex(/^\d{3}$/, "CCV must be 3 digits"),
+    acceptTerms: z
+      .boolean()
+      .refine(
+        (val) => val === true,
+        "You must accept the terms and conditions"
+      ),
+    saveCard: z.boolean(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [expiryDate, setExpiryDate] = useState("");
-  const [cardHolder, setCardHolder] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardCCV, setCardCCV] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [saveCard, setSaveCard] = useState(false);
-  const [isFormValid, setIsFormValid] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+    watch,
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    mode: "onChange",
+  });
+
+  const acceptTerms = watch("acceptTerms");
 
   useEffect(() => {
     const oneYearFromNow = new Date();
@@ -24,34 +54,56 @@ export default function Register() {
     setExpiryDate(oneYearFromNow.toISOString().split("T")[0]);
   }, []);
 
-  useEffect(() => {
-    const isValid =
-      email !== "" &&
-      password !== "" &&
-      confirmPassword !== "" &&
-      password === confirmPassword &&
-      acceptTerms &&
-      cardHolder !== "" &&
-      cardNumber !== "" &&
-      cardCCV !== "" &&
-      cardExpiry !== "";
-    setIsFormValid(isValid);
-  }, [
-    email,
-    password,
-    confirmPassword,
-    acceptTerms,
-    cardHolder,
-    cardNumber,
-    cardCCV,
-    cardExpiry,
-  ]);
+  const onSubmit: SubmitHandler<RegisterFormData> = async (data) => {
+    const userData = {
+      email: data.email,
+      password: data.password,
+      name: data.name,
+    };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isFormValid) {
-      console.log("Form submitted");
-      // Handle form submission logic here
+    const paymentInfo = {
+      cardHolder: data.cardHolder,
+      cardNumber: data.cardNumber,
+      cvv: data.cardCCV,
+      expiryDate: data.cardExpiry,
+      registeredUser: {
+        email: data.email,
+      },
+    };
+
+    try {
+      const registerResponse = await api.post(
+        "/register/registereduser",
+        userData
+      );
+
+      if (registerResponse.status === 201) {
+        console.log("User registered successfully");
+
+        if (data.saveCard) {
+          try {
+            const savePaymentResponse = await api.post(
+              "/payment/save",
+              paymentInfo
+            );
+
+            if (savePaymentResponse.status === 201) {
+              console.log("Payment information saved successfully");
+            } else {
+              console.warn("Failed to save payment information");
+            }
+          } catch (paymentError) {
+            console.error("Error saving payment information:", paymentError);
+          }
+        }
+      } else {
+        console.warn(
+          "Registration failed with status:",
+          registerResponse.status
+        );
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
     }
   };
 
@@ -90,7 +142,7 @@ export default function Register() {
           className="bg-gray-800 rounded-lg p-8 shadow-lg"
           variants={itemVariants}
         >
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-4">
               <label htmlFor="email" className="block text-sm font-medium mb-2">
                 Email
@@ -99,17 +151,43 @@ export default function Register() {
                 <input
                   type="email"
                   id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                  required
                 />
                 <Mail
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   size={20}
                 />
               </div>
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-sm font-medium mb-2">
+                Name
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="name"
+                  {...register("name")}
+                  className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                />
+                <User
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
+              </div>
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
             <div className="mb-4">
               <label
                 htmlFor="password"
@@ -121,16 +199,19 @@ export default function Register() {
                 <input
                   type="password"
                   id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register("password")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                  required
                 />
                 <Lock
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   size={20}
                 />
               </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
             <div className="mb-4">
               <label
@@ -143,31 +224,37 @@ export default function Register() {
                 <input
                   type="password"
                   id="confirmPassword"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  {...register("confirmPassword")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                  required
                 />
                 <Lock
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   size={20}
                 />
               </div>
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
             </div>
             <div className="mb-4">
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={acceptTerms}
-                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  {...register("acceptTerms")}
                   className="form-checkbox h-5 w-5 text-primary-500"
-                  required
                 />
                 <span className="ml-2 text-sm">
                   I accept the terms and agree to pay $20 for a one-year
                   membership
                 </span>
               </label>
+              {errors.acceptTerms && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.acceptTerms.message}
+                </p>
+              )}
             </div>
             <div className="mb-4">
               <label
@@ -201,16 +288,19 @@ export default function Register() {
                 <input
                   type="text"
                   id="cardHolder"
-                  value={cardHolder}
-                  onChange={(e) => setCardHolder(e.target.value)}
+                  {...register("cardHolder")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                  required
                 />
                 <User
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   size={20}
                 />
               </div>
+              {errors.cardHolder && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.cardHolder.message}
+                </p>
+              )}
             </div>
             <div className="mb-4">
               <label
@@ -223,16 +313,19 @@ export default function Register() {
                 <input
                   type="text"
                   id="cardNumber"
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value)}
+                  {...register("cardNumber")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                  required
                 />
                 <CreditCard
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   size={20}
                 />
               </div>
+              {errors.cardNumber && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.cardNumber.message}
+                </p>
+              )}
             </div>
             <div className="flex mb-4 space-x-4">
               <div className="w-1/2">
@@ -245,12 +338,15 @@ export default function Register() {
                 <input
                   type="text"
                   id="cardExpiry"
-                  value={cardExpiry}
-                  onChange={(e) => setCardExpiry(e.target.value)}
+                  {...register("cardExpiry")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="MM/YY"
-                  required
                 />
+                {errors.cardExpiry && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.cardExpiry.message}
+                  </p>
+                )}
               </div>
               <div className="w-1/2">
                 <label
@@ -262,19 +358,21 @@ export default function Register() {
                 <input
                   type="text"
                   id="cardCCV"
-                  value={cardCCV}
-                  onChange={(e) => setCardCCV(e.target.value)}
+                  {...register("cardCCV")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  required
                 />
+                {errors.cardCCV && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.cardCCV.message}
+                  </p>
+                )}
               </div>
             </div>
             <div className="mb-6">
               <label className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={saveCard}
-                  onChange={(e) => setSaveCard(e.target.checked)}
+                  {...register("saveCard")}
                   className="form-checkbox h-5 w-5 text-primary-500"
                 />
                 <span className="ml-2 text-sm">
@@ -292,11 +390,11 @@ export default function Register() {
               <button
                 type="submit"
                 className={`bg-primary-500 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center ${
-                  isFormValid
+                  isValid && acceptTerms
                     ? "hover:bg-primary-600"
                     : "opacity-50 cursor-not-allowed"
                 }`}
-                disabled={!isFormValid}
+                disabled={!isValid || !acceptTerms}
               >
                 Sign Up
                 <Check className="ml-2" size={20} />
