@@ -9,7 +9,6 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private double price;
     // Many-to-One relationship with Showtime
     @ManyToOne
     @JoinColumn(name = "showtime_id", nullable = false)
@@ -32,14 +31,6 @@ public class Ticket {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
     }
 
     public Showtime getShowtime() {

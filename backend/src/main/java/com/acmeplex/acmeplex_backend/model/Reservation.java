@@ -15,9 +15,11 @@ public class Reservation {
 
     private LocalDateTime reservationDate;
 
-    private String status; // ACTIVE, CANCELLED, COMPLETED
+    private String status; // VALID, CANCELLED
 
     private String paymentConfirmation;
+
+    private double reservationValue;
 
     // Many-to-One relationship with User
     @ManyToOne
@@ -25,7 +27,7 @@ public class Reservation {
     private User user;
 
     // One-to-Many relationship with Ticket
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<Ticket> tickets = new HashSet<>();
 
     public Long getId() {
@@ -74,5 +76,13 @@ public class Reservation {
 
     public void setPaymentConfirmation(String paymentConfirmation) {
         this.paymentConfirmation = paymentConfirmation;
+    }
+
+    public double getReservationValue() {
+        return reservationValue;
+    }
+
+    public void setReservationValue(double reservationValue) {
+        this.reservationValue = reservationValue;
     }
 }
