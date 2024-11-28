@@ -26,7 +26,10 @@ function App() {
       <Route path="/confirmtickets" element={<ConfirmTickets />} />
       <Route path="/register" element={<Register />} />
       <Route path="/checkbalance" element={<CheckBalance />} />
-      <Route path="/confirmbooking" element={<BookingConfirmation />} />
+      <Route
+        path="/bookingconfirmation/:id/:email"
+        element={<BookingConfirmation />}
+      />
       <Route path="/signedinpurchase" element={<SignedInPurchase />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

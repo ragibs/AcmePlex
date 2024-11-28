@@ -10,6 +10,7 @@ interface AppState {
   showtimeId: string;
   genre: string;
   seats: string[];
+  seatIds: string[];
   totalprice: number;
 }
 
@@ -32,6 +33,7 @@ const initialState: AppState = {
   showtimeId: "",
   genre: "",
   seats: [],
+  seatIds: [],
   totalprice: 0,
 };
 

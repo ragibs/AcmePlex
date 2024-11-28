@@ -11,6 +11,7 @@ import {
   User,
   Lock,
   Tag,
+  Loader,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
@@ -49,7 +50,9 @@ export default function ConfirmTickets() {
     "Are you sure you want to leave? Your progress may not be saved."
   );
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [formError, setFormError] = React.useState<string | null>(null);
   const [couponCode, setCouponCode] = React.useState("");
   const [appliedCoupon, setAppliedCoupon] = React.useState<{
     code: string;
@@ -102,17 +105,28 @@ export default function ConfirmTickets() {
   };
 
   const onSubmitGuest = async (data: GuestFormData) => {
+    setIsSubmitting(true);
     const payload = {
       showtimeID: state.showtimeId,
-      seatIDList: state.seats,
+      seatIDList: state.seatIds,
       userEmail: data.email,
       paymentConfirmation: generatePaymentConfirmationNumber(),
     };
     try {
       const response = await api.post("/reservation/create", payload);
-    } catch (error) {
-      console.log(error);
+      if (response.status === 201) {
+        navigate(
+          `/bookingconfirmation/${response.data.id}/${response.data.user.email}`
+        );
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        setFormError(error.response.data);
+      } else {
+        setFormError("An unexpected error occurred. Please try again.");
+      }
     } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -236,136 +250,196 @@ export default function ConfirmTickets() {
                       ? "bg-primary-500 text-white"
                       : "bg-gray-700 text-gray-300"
                   }`}
+                  disabled={isSubmitting}
                 >
                   Sign In
                 </button>
               </div>
 
               {checkoutMethod === "guest" ? (
-                <form onSubmit={handleSubmitGuest(onSubmitGuest)}>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      Email
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        id="email"
-                        {...registerGuest("email")}
-                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                      />
-                      <Mail
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={20}
-                      />
-                    </div>
-                    {errorsGuest.email && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errorsGuest.email.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="cardName"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      Name on Card
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="cardName"
-                        {...registerGuest("cardName")}
-                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                      />
-                      <User
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={20}
-                      />
-                    </div>
-                    {errorsGuest.cardName && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errorsGuest.cardName.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="mb-4">
-                    <label
-                      htmlFor="cardNumber"
-                      className="block text-sm font-medium mb-2"
-                    >
-                      Card Number
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="cardNumber"
-                        {...registerGuest("cardNumber")}
-                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
-                      />
-                      <CreditCard
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={20}
-                      />
-                    </div>
-                    {errorsGuest.cardNumber && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errorsGuest.cardNumber.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex mb-4 space-x-4">
-                    <div className="w-1/2">
+                <>
+                  <form onSubmit={handleSubmitGuest(onSubmitGuest)}>
+                    <div className="mb-4">
                       <label
-                        htmlFor="cardExpiry"
+                        htmlFor="email"
                         className="block text-sm font-medium mb-2"
                       >
-                        Expiry Date
+                        Email
                       </label>
-                      <input
-                        type="text"
-                        id="cardExpiry"
-                        {...registerGuest("cardExpiry")}
-                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="MM/YY"
-                      />
-                      {errorsGuest.cardExpiry && (
+                      <div className="relative">
+                        <input
+                          type="email"
+                          id="email"
+                          {...registerGuest("email")}
+                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                          disabled={isSubmitting}
+                        />
+                        <Mail
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                          size={20}
+                        />
+                      </div>
+                      {errorsGuest.email && (
                         <p className="text-red-500 text-sm mt-1">
-                          {errorsGuest.cardExpiry.message}
+                          {errorsGuest.email.message}
                         </p>
                       )}
                     </div>
-                    <div className="w-1/2">
+                    <div className="mb-4">
                       <label
-                        htmlFor="cardCCV"
+                        htmlFor="cardName"
                         className="block text-sm font-medium mb-2"
                       >
-                        CCV
+                        Name on Card
                       </label>
-                      <input
-                        type="text"
-                        id="cardCCV"
-                        {...registerGuest("cardCCV")}
-                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      />
-                      {errorsGuest.cardCCV && (
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="cardName"
+                          {...registerGuest("cardName")}
+                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                          disabled={isSubmitting}
+                        />
+                        <User
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                          size={20}
+                        />
+                      </div>
+                      {errorsGuest.cardName && (
                         <p className="text-red-500 text-sm mt-1">
-                          {errorsGuest.cardCCV.message}
+                          {errorsGuest.cardName.message}
                         </p>
                       )}
                     </div>
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"
-                  >
-                    Complete Purchase
-                  </button>
-                </form>
+                    <div className="mb-4">
+                      <label
+                        htmlFor="cardNumber"
+                        className="block text-sm font-medium mb-2"
+                      >
+                        Card Number
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="cardNumber"
+                          {...registerGuest("cardNumber")}
+                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                          disabled={isSubmitting}
+                        />
+                        <CreditCard
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                          size={20}
+                        />
+                      </div>
+                      {errorsGuest.cardNumber && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errorsGuest.cardNumber.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex mb-4 space-x-4">
+                      <div className="w-1/2">
+                        <label
+                          htmlFor="cardExpiry"
+                          className="block text-sm font-medium mb-2"
+                        >
+                          Expiry Date
+                        </label>
+                        <input
+                          type="text"
+                          id="cardExpiry"
+                          {...registerGuest("cardExpiry")}
+                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          placeholder="MM/YY"
+                          disabled={isSubmitting}
+                        />
+                        {errorsGuest.cardExpiry && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errorsGuest.cardExpiry.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="w-1/2">
+                        <label
+                          htmlFor="cardCCV"
+                          className="block text-sm font-medium mb-2"
+                        >
+                          CCV
+                        </label>
+                        <input
+                          type="text"
+                          id="cardCCV"
+                          {...registerGuest("cardCCV")}
+                          className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          disabled={isSubmitting}
+                        />
+                        {errorsGuest.cardCCV && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errorsGuest.cardCCV.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Coupon Field */}
+                    <div className="mb-6">
+                      <label
+                        htmlFor="couponCode"
+                        className="block text-sm font-medium mb-2"
+                      >
+                        Coupon Code
+                      </label>
+                      <div className="flex space-x-2">
+                        <div className="relative flex-grow">
+                          <input
+                            type="text"
+                            id="couponCode"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                            placeholder="Enter coupon code"
+                            disabled={isSubmitting}
+                          />
+                          <Tag
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                            size={20}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={applyCoupon}
+                          className="bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+                          disabled={isSubmitting}
+                        >
+                          Apply
+                        </button>
+                      </div>
+                      {appliedCoupon && (
+                        <p className="mt-2 text-sm text-primary-400">
+                          Coupon {appliedCoupon.code} applied: $
+                          {appliedCoupon.value} off
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <Loader className="animate-spin mr-2" size={20} />
+                      ) : (
+                        "Complete Purchase"
+                      )}
+                    </button>
+                  </form>
+                  {formError && (
+                    <div className=" text-red-500 text-center py-2 px-4 rounded-md mb-4">
+                      {formError}
+                    </div>
+                  )}
+                </>
               ) : (
                 <form onSubmit={handleSubmitSignin(onSubmitSignin)}>
                   <div className="mb-4">

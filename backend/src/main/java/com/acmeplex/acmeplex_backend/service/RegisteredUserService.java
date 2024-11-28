@@ -1,6 +1,8 @@
 package com.acmeplex.acmeplex_backend.service;
 
+import com.acmeplex.acmeplex_backend.model.PaymentInfo;
 import com.acmeplex.acmeplex_backend.model.RegisteredUser;
+import com.acmeplex.acmeplex_backend.repository.PaymentInfoRepository;
 import com.acmeplex.acmeplex_backend.repository.RegisteredUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,19 +19,24 @@ public class RegisteredUserService implements UserDetailsService {
     @Autowired
     private final RegisteredUserRepository registeredUserRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PaymentInfoRepository paymentInfoRepository;
 
-    public RegisteredUserService(RegisteredUserRepository registeredUserRepository, PasswordEncoder passwordEncoder) {
+    public RegisteredUserService(RegisteredUserRepository registeredUserRepository, PasswordEncoder passwordEncoder, PaymentInfoRepository paymentInfoRepository) {
         this.registeredUserRepository = registeredUserRepository;
         this.passwordEncoder = passwordEncoder;
+        this.paymentInfoRepository = paymentInfoRepository;
+
     }
 
-    public void registerRegisteredUser(String email, String password, String name){
+    public void registerRegisteredUser(String email, String password, String name, PaymentInfo paymentInfo){
         RegisteredUser registeredUser = new RegisteredUser();
         registeredUser.setEmail(email);
         String encodedPassword = passwordEncoder.encode(password);
         registeredUser.setPassword(encodedPassword);
         registeredUser.setName(name);
-        registeredUserRepository.save(registeredUser);
+        RegisteredUser savedUser = registeredUserRepository.save(registeredUser);
+        paymentInfo.setRegisteredUser(savedUser);
+        paymentInfoRepository.save(paymentInfo);
     }
 
     @Override

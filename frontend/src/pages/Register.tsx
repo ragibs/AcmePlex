@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, CreditCard, Calendar, User, Check } from "lucide-react";
-import { Link } from "react-router-dom";
+import {
+  Mail,
+  Lock,
+  CreditCard,
+  Calendar,
+  User,
+  Check,
+  Loader,
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -25,7 +33,6 @@ const registerSchema = z
         (val) => val === true,
         "You must accept the terms and conditions"
       ),
-    saveCard: z.boolean(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -53,57 +60,51 @@ export default function Register() {
     oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
     setExpiryDate(oneYearFromNow.toISOString().split("T")[0]);
   }, []);
+  const navigate = useNavigate();
+  const [formError, setFormError] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const onSubmit: SubmitHandler<RegisterFormData> = async (data) => {
-    const userData = {
-      email: data.email,
-      password: data.password,
-      name: data.name,
-    };
-
-    const paymentInfo = {
-      cardHolder: data.cardHolder,
-      cardNumber: data.cardNumber,
-      cvv: data.cardCCV,
-      expiryDate: data.cardExpiry,
+    setIsSubmitting(true);
+    // Combine `registeredUser` and `paymentInfo` into the request payload
+    const userRegistrationPayload = {
       registeredUser: {
         email: data.email,
+        password: data.password,
+        name: data.name,
+      },
+      paymentInfo: {
+        cardHolder: data.cardHolder,
+        cardNumber: data.cardNumber,
+        cvv: data.cardCCV,
+        expiryDate: data.cardExpiry,
       },
     };
 
     try {
       const registerResponse = await api.post(
         "/register/registereduser",
-        userData
+        userRegistrationPayload
       );
 
       if (registerResponse.status === 201) {
-        console.log("User registered successfully");
+        console.log("User registered successfully with payment information");
 
-        if (data.saveCard) {
-          try {
-            const savePaymentResponse = await api.post(
-              "/payment/save",
-              paymentInfo
-            );
-
-            if (savePaymentResponse.status === 201) {
-              console.log("Payment information saved successfully");
-            } else {
-              console.warn("Failed to save payment information");
-            }
-          } catch (paymentError) {
-            console.error("Error saving payment information:", paymentError);
-          }
-        }
+        navigate("/confirmtickets");
       } else {
         console.warn(
           "Registration failed with status:",
           registerResponse.status
         );
       }
-    } catch (error) {
-      console.error("Error during registration:", error);
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        setFormError(error.response.data);
+      } else {
+        setFormError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -153,6 +154,7 @@ export default function Register() {
                   id="email"
                   {...register("email")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                  disabled={isSubmitting}
                 />
                 <Mail
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -175,6 +177,7 @@ export default function Register() {
                   id="name"
                   {...register("name")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                  disabled={isSubmitting}
                 />
                 <User
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -201,6 +204,7 @@ export default function Register() {
                   id="password"
                   {...register("password")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                  disabled={isSubmitting}
                 />
                 <Lock
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -226,6 +230,7 @@ export default function Register() {
                   id="confirmPassword"
                   {...register("confirmPassword")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                  disabled={isSubmitting}
                 />
                 <Lock
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -244,10 +249,12 @@ export default function Register() {
                   type="checkbox"
                   {...register("acceptTerms")}
                   className="form-checkbox h-5 w-5 text-primary-500"
+                  disabled={isSubmitting}
                 />
                 <span className="ml-2 text-sm">
                   I accept the terms and agree to pay $20 for a one-year
-                  membership
+                  membership. The payment information provided below will be
+                  saved as my default payment method for future transactions.
                 </span>
               </label>
               {errors.acceptTerms && (
@@ -290,6 +297,7 @@ export default function Register() {
                   id="cardHolder"
                   {...register("cardHolder")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                  disabled={isSubmitting}
                 />
                 <User
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -315,6 +323,7 @@ export default function Register() {
                   id="cardNumber"
                   {...register("cardNumber")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                  disabled={isSubmitting}
                 />
                 <CreditCard
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -341,6 +350,7 @@ export default function Register() {
                   {...register("cardExpiry")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="MM/YY"
+                  disabled={isSubmitting}
                 />
                 {errors.cardExpiry && (
                   <p className="text-red-500 text-xs mt-1">
@@ -360,6 +370,7 @@ export default function Register() {
                   id="cardCCV"
                   {...register("cardCCV")}
                   className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  disabled={isSubmitting}
                 />
                 {errors.cardCCV && (
                   <p className="text-red-500 text-xs mt-1">
@@ -368,39 +379,42 @@ export default function Register() {
                 )}
               </div>
             </div>
-            <div className="mb-6">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  {...register("saveCard")}
-                  className="form-checkbox h-5 w-5 text-primary-500"
-                />
-                <span className="ml-2 text-sm">
-                  Save this as my preferred payment method
-                </span>
-              </label>
-            </div>
+
             <div className="flex justify-between">
               <Link
                 to="/"
                 className="text-primary-400 hover:text-primary-300 transition-colors"
               >
-                Cancel
+                <button disabled={isSubmitting}>Cancel</button>
               </Link>
               <button
                 type="submit"
-                className={`bg-primary-500 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center ${
+                className={`bg-primary-500 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center ${
                   isValid && acceptTerms
                     ? "hover:bg-primary-600"
                     : "opacity-50 cursor-not-allowed"
                 }`}
-                disabled={!isValid || !acceptTerms}
+                disabled={!isValid || !acceptTerms || isSubmitting}
               >
-                Sign Up
-                <Check className="ml-2" size={20} />
+                {isSubmitting ? (
+                  <>
+                    <Loader className="animate-spin mr-2" size={20} />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    Sign Up
+                    <Check className="ml-2" size={20} />
+                  </>
+                )}
               </button>
             </div>
           </form>
+          {formError && (
+            <div className=" text-red-500 text-center py-2 px-4 rounded-md mb-4">
+              {formError}
+            </div>
+          )}
         </motion.div>
       </div>
     </motion.div>

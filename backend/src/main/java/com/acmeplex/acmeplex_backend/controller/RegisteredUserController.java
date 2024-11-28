@@ -1,5 +1,7 @@
 package com.acmeplex.acmeplex_backend.controller;
 
+import com.acmeplex.acmeplex_backend.dto.UserRegistrationRequest;
+import com.acmeplex.acmeplex_backend.model.PaymentInfo;
 import com.acmeplex.acmeplex_backend.model.RegisteredUser;
 import com.acmeplex.acmeplex_backend.model.User;
 import com.acmeplex.acmeplex_backend.repository.RegisteredUserRepository;
@@ -24,16 +26,21 @@ public class RegisteredUserController {
     private RegisteredUserRepository registeredUserRepository;
 
     @PostMapping("/register/registereduser")
-    public ResponseEntity<String> register(@RequestBody RegisteredUser registeredUser){
+    public ResponseEntity<String> register(@RequestBody UserRegistrationRequest userRegistrationRequest) {
+        RegisteredUser registeredUser = userRegistrationRequest.getRegisteredUser();
+        PaymentInfo paymentInfo = userRegistrationRequest.getPaymentInfo();
+
         Optional<RegisteredUser> registeredUserExists = registeredUserRepository.findByEmail(registeredUser.getEmail());
-        if (registeredUserExists.isPresent()){
+        if (registeredUserExists.isPresent()) {
             return ResponseEntity.status(409).body("A registered user with this email address already exists");
         }
         registeredUserService.registerRegisteredUser(
                 registeredUser.getEmail(),
                 registeredUser.getPassword(),
-                registeredUser.getName());
-        return ResponseEntity.status(201).body("User registered successfully");
+                registeredUser.getName(),
+                paymentInfo
+        );
+        return ResponseEntity.status(201).body("User and payment information registered successfully");
     }
 
 }

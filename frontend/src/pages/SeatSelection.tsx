@@ -33,6 +33,8 @@ interface SeatsResponse {
 export default function SeatSelection() {
   const [ticketCount, setTicketCount] = useState(0);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [selectedSeatsId, setSelectedSeatsId] = useState<string[]>([]);
+
   const [totalPrice, setTotalPrice] = useState(0);
   const [seats, setSeats] = useState<SeatsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,11 +98,17 @@ export default function SeatSelection() {
     visible: { y: 0, opacity: 1 },
   };
 
-  const handleSeatClick = (seat: string) => {
-    if (selectedSeats.includes(seat)) {
-      setSelectedSeats(selectedSeats.filter((s) => s !== seat));
+  const handleSeatClick = (seat: Seat) => {
+    const { seatNumber, id } = seat;
+
+    if (selectedSeats.includes(seatNumber)) {
+      setSelectedSeats(selectedSeats.filter((s) => s !== seatNumber));
+      setSelectedSeatsId(
+        selectedSeatsId.filter((seatId) => seatId !== id.toString())
+      );
     } else if (selectedSeats.length < ticketCount) {
-      setSelectedSeats([...selectedSeats, seat]);
+      setSelectedSeats([...selectedSeats, seatNumber]);
+      setSelectedSeatsId([...selectedSeatsId, id.toString()]);
     }
   };
 
@@ -123,7 +131,7 @@ export default function SeatSelection() {
           .map((seat) => (
             <button
               key={seat.id}
-              onClick={() => !seat.booked && handleSeatClick(seat.seatNumber)}
+              onClick={() => !seat.booked && handleSeatClick(seat)}
               className={`w-8 h-8 rounded-lg ${
                 seat.booked
                   ? "bg-gray-400 cursor-not-allowed"
@@ -145,6 +153,7 @@ export default function SeatSelection() {
   const handleNext = () => {
     updateState("totalprice", totalPrice);
     updateState("seats", selectedSeats);
+    updateState("seatIds", selectedSeatsId);
     navigate("/confirmtickets");
   };
 
