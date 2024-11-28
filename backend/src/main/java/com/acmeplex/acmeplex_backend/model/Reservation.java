@@ -27,7 +27,7 @@ public class Reservation {
     private User user;
 
     // One-to-Many relationship with Ticket
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<Ticket> tickets = new HashSet<>();
 
     public Long getId() {

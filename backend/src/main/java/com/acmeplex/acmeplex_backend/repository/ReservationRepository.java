@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
-    @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.tickets WHERE r.id = :id")
-    Optional<Reservation> getReservationTickets(Long id);
+//    @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.tickets WHERE r.id = :id")
+//    Optional<Reservation> getReservationTickets(Long id);
 }

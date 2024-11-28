@@ -8,6 +8,7 @@ import com.acmeplex.acmeplex_backend.repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +28,6 @@ public class TicketService {
         this.seatRepository = seatRepository;
         this.reservationRepository = reservationRepository;
     }
-
 
     public void createTicket(Long showtimeID, Long seatID, Long reservationID){
         Showtime showtime = showtimeRepository.findById(showtimeID)

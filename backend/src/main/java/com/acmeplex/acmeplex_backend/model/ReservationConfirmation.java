@@ -1,18 +1,11 @@
 package com.acmeplex.acmeplex_backend.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ReservationConfirmation {
 
-//    public ReservationConfirmation(String movieName, String moviePoster, String theatreName, LocalDateTime showTime, String userEmail, List<String> seatNames){
-//        this.movieName= movieName;
-//        this.moviePoster = moviePoster;
-//        this.theatreName = theatreName;
-//        this.showTime = showTime;
-//        this.userEmail = userEmail;
-//        this.seatNames = seatNames;
-//    }
     private String movieName;
 
     private String moviePoster;
@@ -23,7 +16,7 @@ public class ReservationConfirmation {
 
     private String userEmail;
 
-    private List<String> seatNames;
+    private List<String> seatNames = new ArrayList<>();
 
     public String getMovieName() {
         return movieName;

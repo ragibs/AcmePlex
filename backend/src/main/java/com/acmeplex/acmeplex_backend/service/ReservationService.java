@@ -3,8 +3,10 @@ package com.acmeplex.acmeplex_backend.service;
 import com.acmeplex.acmeplex_backend.model.*;
 import com.acmeplex.acmeplex_backend.repository.ReservationRepository;
 import com.acmeplex.acmeplex_backend.repository.UserRepository;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -48,17 +50,24 @@ public class ReservationService{
         for (Long seatID: reservationRequest.seatIDList()){
             ticketService.createTicket(reservationRequest.showtimeID(), seatID, reservation.getId());
         }
-        List<Ticket> tickets = reservation.getTickets().stream().toList();
-        return createReservationConfirmation(tickets, reservation);
+        return createReservationConfirmation(reservation.getId() - 1);
     }
 
-    public ReservationConfirmation createReservationConfirmation(List<Ticket> tickets, Reservation reservation){
+    public ReservationConfirmation createReservationConfirmation(Long id){
+        Optional<Reservation> reservationOptional = reservationRepository.findById(id);
+        if (reservationOptional.isEmpty()){
+            throw new IllegalArgumentException("Please ensure that reservation was successfully saved");
+        }
+        Reservation reservation = reservationOptional.get();
+        Hibernate.initialize(reservation.getTickets());
+        List<Ticket> tickets = reservation.getTickets().stream().toList();
         Ticket ticket = tickets.get(0);
         ReservationConfirmation reservationConfirmation = new ReservationConfirmation();
         reservationConfirmation.setMovieName(ticket.getShowtime().getMovie().getName());
         reservationConfirmation.setMoviePoster(ticket.getShowtime().getMovie().getPoster());
         reservationConfirmation.setShowTime(ticket.getShowtime().getStartTime());
         reservationConfirmation.setUserEmail(reservation.getUser().getEmail());
+        reservationConfirmation.setTheatreName(ticket.getShowtime().getTheatre().getName());
 
         for (Ticket ticketItem: tickets){
             reservationConfirmation.addSeatName(ticketItem.getSeat().getSeatNumber());
