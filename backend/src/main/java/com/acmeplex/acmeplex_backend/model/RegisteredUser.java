@@ -1,8 +1,12 @@
 package com.acmeplex.acmeplex_backend.model;
 
+import com.acmeplex.acmeplex_backend.service.EmailService;
+import com.acmeplex.acmeplex_backend.service.MovieService;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.*;
 import org.antlr.v4.runtime.misc.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Entity
 //@PrimaryKeyJoinColumn(name = "user_id")
@@ -33,14 +37,7 @@ public class RegisteredUser extends User {
 
     @Override
     public void update(String announcement) {
-        // Registered users receive the announcement earlier (immediate email)
-        sendEmail(announcement);
-    }
-
-    @Override
-    public void sendEmail(String announcement) {
-        // Send email to registered user immediately
-        System.out.println("Registered User Email (Early): " + announcement);
+        System.out.println("Received update: " + announcement);
     }
 
 }

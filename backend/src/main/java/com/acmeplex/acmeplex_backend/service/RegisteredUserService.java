@@ -1,5 +1,6 @@
 package com.acmeplex.acmeplex_backend.service;
 
+import com.acmeplex.acmeplex_backend.ObserverPattern.Announcement;
 import com.acmeplex.acmeplex_backend.model.RegisteredUser;
 import com.acmeplex.acmeplex_backend.repository.RegisteredUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class RegisteredUserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Autowired
+    private Announcement announcementService;
+
     public void registerRegisteredUser(String email, String password, String name){
         RegisteredUser registeredUser = new RegisteredUser();
         registeredUser.setEmail(email);
@@ -30,6 +34,8 @@ public class RegisteredUserService implements UserDetailsService {
         registeredUser.setPassword(encodedPassword);
         registeredUser.setName(name);
         registeredUserRepository.save(registeredUser);
+
+        announcementService.attach(registeredUser);
     }
 
     @Override

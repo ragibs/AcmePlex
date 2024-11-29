@@ -5,9 +5,11 @@ import com.acmeplex.acmeplex_backend.model.Movie;
 import com.acmeplex.acmeplex_backend.model.Showtime;
 import com.acmeplex.acmeplex_backend.model.Theatre;
 import com.acmeplex.acmeplex_backend.repository.MovieRepository;
+import com.acmeplex.acmeplex_backend.service.EmailService;
 import com.acmeplex.acmeplex_backend.service.MovieService;
 import com.acmeplex.acmeplex_backend.service.ShowtimeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +27,9 @@ public class MovieController {
     @Autowired
     private ShowtimeService showtimeService;
 
+    @Autowired
+    private EmailService emailService;
+
     @GetMapping("/movies")
     List<Movie> getAllMovies(){
         return movieService.getAllMovies();
@@ -40,6 +45,11 @@ public class MovieController {
             @PathVariable Long movieId,
             @RequestParam String selectedDate) { // Accept the selected date as a query parameter
         return showtimeService.getShowtimesByMovieAndDate(movieId, selectedDate); // Pass date to service
+    }
+
+    @PostMapping("movie/add")
+    public Movie addMovie(@RequestBody Movie movie) {
+        return movieService.addMovie(movie);
     }
 
 }

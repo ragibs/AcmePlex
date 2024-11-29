@@ -17,18 +17,18 @@ public class Showtime {
 
     private LocalDateTime startTime;
 
-    @JsonBackReference // This will prevent the movie from being serialized within Showtime
+    @JsonBackReference("movie-showtimes") // This will prevent the movie from being serialized within Showtime
     @ManyToOne
     @JoinColumn(name = "movie_id")
     private Movie movie;
 
-    @JsonBackReference // This will prevent the movie from being serialized within Showtime
+    @JsonBackReference("theatre-showtimes") // This will prevent the movie from being serialized within Showtime
     @ManyToOne
     @JoinColumn(name = "theatre_id")
     private Theatre theatre;
 
     @OneToMany(mappedBy = "showtime", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonManagedReference("showtime-seats")
     private List<Seat> seats;
 
     public Long getId() {

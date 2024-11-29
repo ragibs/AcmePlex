@@ -14,12 +14,12 @@ public class Seat {
     private boolean isBooked;
 
     @OneToOne(mappedBy = "seat")
-    @JsonBackReference
+    @JsonBackReference("ticket-seat")
     private Ticket ticket;
 
     @ManyToOne
     @JoinColumn(name = "showtime_id")
-    @JsonBackReference
+    @JsonBackReference("showtime-seats")
     private Showtime showtime;
 
     public Long getId() {

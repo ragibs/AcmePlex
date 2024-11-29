@@ -17,7 +17,7 @@ public class Theatre {
     private String address;
 
 //    @JsonManagedReference  // This will serialize the list of showtimes for the movie
-    @JsonBackReference // This will prevent the movie from being serialized
+    @JsonManagedReference("theatre-showtimes") // This will prevent the movie from being serialized
     @OneToMany(mappedBy = "theatre", cascade = CascadeType.ALL)
     private List<Showtime> showtimes;
 

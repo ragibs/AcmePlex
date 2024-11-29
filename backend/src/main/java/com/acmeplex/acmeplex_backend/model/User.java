@@ -1,7 +1,11 @@
 package com.acmeplex.acmeplex_backend.model;
 import com.acmeplex.acmeplex_backend.ObserverPattern.Observer;
+import com.acmeplex.acmeplex_backend.service.EmailService;
+import com.acmeplex.acmeplex_backend.service.MovieService;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +23,6 @@ public class User implements Observer {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Reservation> reservations = new ArrayList<>();
-
 
     public Long getId() {
         return id;
@@ -47,12 +50,6 @@ public class User implements Observer {
 
     @Override
     public void update(String announcement) {
-        // Regular users receive the announcement after a delay (simulating email delay)
-        sendEmail(announcement);
-    }
-
-    public void sendEmail(String announcement) {
-        // Send email to regular user after some delay (simulate delay logic here)
-        System.out.println("Regular User Email: " + announcement);
+        System.out.println("Received update: " + announcement);
     }
 }
