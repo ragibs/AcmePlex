@@ -8,6 +8,7 @@ import com.acmeplex.acmeplex_backend.repository.MovieRepository;
 import com.acmeplex.acmeplex_backend.service.MovieService;
 import com.acmeplex.acmeplex_backend.service.ShowtimeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +48,16 @@ public class MovieController {
         return movieService.addMovie(movie);
     }
 
+    @GetMapping("/movies/exclusive")
+    public ResponseEntity<?> getExclusiveMovie(){
+        try{
+            List<Movie> movies = movieService.returnExclusiveMovies();
+            return new ResponseEntity<>(movies, HttpStatus.OK);
+        } catch (IllegalArgumentException exception){
+            return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+    }
 }
 
 

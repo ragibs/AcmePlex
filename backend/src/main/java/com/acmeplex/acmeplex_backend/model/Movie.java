@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,6 +22,8 @@ public class Movie {
     private LocalDate releaseDate;
     private int duration; // in minutes
     private String genre;
+    private boolean isExclusive;
+    private LocalDateTime exclusiveEndDate;
 
     @JsonBackReference("movie-showtimes")
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
@@ -89,5 +92,21 @@ public class Movie {
 
     public void setShowtimes(List<Showtime> showtimes) {
         this.showtimes = showtimes;
+    }
+
+    public LocalDateTime getExclusiveEndDate() {
+        return exclusiveEndDate;
+    }
+
+    public void setExclusiveEndDate(LocalDateTime exclusiveEndDate) {
+        this.exclusiveEndDate = exclusiveEndDate;
+    }
+
+    public boolean isExclusive() {
+        return isExclusive;
+    }
+
+    public void setExclusive(boolean exclusive) {
+        isExclusive = exclusive;
     }
 }
