@@ -12,6 +12,7 @@ import SignedInPurchase from "./pages/SignedInPurchase";
 import { Routes, Route } from "react-router-dom";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import NotFound from "./pages/NotFound";
+import CancelConfirmation from "./pages/CancelConfirmation";
 
 function App() {
   return (
@@ -21,7 +22,10 @@ function App() {
       <Route path="/searchbytheatre/:id/:date" element={<SearchByTheatre />} />
       <Route path="/seatselection/:id" element={<SeatSelection />} />
       <Route path="/getReservation" element={<GetReservation />} />
-      <Route path="/managereservation" element={<ManageReservation />} />
+      <Route
+        path="/managereservation/:id/:email"
+        element={<ManageReservation />}
+      />
       <Route path="/admin" element={<Admin />} />
       <Route path="/confirmtickets" element={<ConfirmTickets />} />
       <Route path="/register" element={<Register />} />
@@ -31,6 +35,10 @@ function App() {
         element={<BookingConfirmation />}
       />
       <Route path="/signedinpurchase/:email" element={<SignedInPurchase />} />
+      <Route
+        path="/cancellation-confirmed/:email/:reservationId"
+        element={<CancelConfirmation />}
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

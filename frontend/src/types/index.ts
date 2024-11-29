@@ -57,3 +57,16 @@ export interface PaymentInfo {
   cvv: string;
   expiryDate: string;
 }
+
+export interface ReservationResponse {
+  movieName: string;
+  moviePoster: string;
+  theatreName: string;
+  showTime: string;
+  userEmail: string;
+  reservationID: number;
+  reservationValue: number;
+  reservationStatus: string;
+  eligibleRefundValue: number;
+  seatName: string[];
+}

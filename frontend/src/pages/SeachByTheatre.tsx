@@ -225,7 +225,7 @@ export default function SearchByTheatre() {
 
       {/* Next: Seat Selection Button */}
       <motion.div
-        className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center md:w-auto md:h-auto w-15 h-12 justify-center"
+        className="fixed bottom-8 right-8"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}

@@ -24,11 +24,6 @@ import PacmanLoader from "react-spinners/PacmanLoader";
 import Cookies from "js-cookie";
 import { PaymentInfo } from "../types";
 
-const user = {
-  email: "user@example.com",
-  paymentMethod: { id: 1, last4: "1234", expiry: "12/24", type: "Visa" },
-};
-
 export default function SignedInPurchase() {
   const [useSavedPayment, setUseSavedPayment] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
@@ -37,11 +32,14 @@ export default function SignedInPurchase() {
   const [newCardNumber, setNewCardNumber] = useState("");
   const [newCardExpiry, setNewCardExpiry] = useState("");
   const [newCardCCV, setNewCardCCV] = useState("");
+
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
     value: number;
   } | null>(null);
+  const [couponEmail, setCouponEmail] = React.useState("");
+
   const { email } = useParams();
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -80,10 +78,11 @@ export default function SignedInPurchase() {
       if (!token) {
         throw new Error("User token is missing");
       }
-
+      console.log(token);
       const response = await api.get(`/payment/${email}`, {
         headers: {
           Authorization: `Bearer ${cleanToken}`,
+          "Content-Type": "application/json",
         },
       });
 
@@ -118,22 +117,76 @@ export default function SignedInPurchase() {
     e.preventDefault();
     setIsSubmitting(true);
     setFormError(null);
-    const payload = {
-      showtimeID: state.showtimeId,
-      seatIDList: state.seatIds,
-      userEmail: email,
-      paymentConfirmation: generatePaymentConfirmationNumber(),
-    };
+
     try {
-      const response = await api.post("/reservation/create", payload);
-      if (response.status === 201) {
-        navigate(
-          `/bookingconfirmation/${response.data.id}/${response.data.user.email}`
+      // check if a coupon is applied
+      if (appliedCoupon) {
+        const couponValidationResponse = await api.get(
+          `/coupon/get/${encodeURIComponent(couponEmail)}/${encodeURIComponent(
+            appliedCoupon.code
+          )}`
         );
+
+        const couponStatus = couponValidationResponse?.data?.couponStatus;
+        const couponBalance = parseFloat(
+          couponValidationResponse?.data?.couponValue
+        );
+
+        // validate coupon
+        if (couponStatus !== "active" || !couponBalance || couponBalance <= 0) {
+          setFormError(
+            "The applied coupon is invalid or has insufficient balance."
+          );
+          return;
+        }
+
+        // convert remaining balance as a double
+        const remainingBalance = Math.max(
+          couponBalance - state.totalprice,
+          0
+        ).toFixed(2);
+
+        // redeem the coupon
+        const couponRedemptionPayload = {
+          email: couponEmail,
+          couponCode: appliedCoupon.code,
+          couponValue: parseFloat(remainingBalance),
+        };
+
+        const redemptionResponse = await api.put(
+          "http://localhost:8080/coupon/redeem",
+          couponRedemptionPayload
+        );
+
+        if (redemptionResponse.status !== 202) {
+          setFormError("Failed to redeem the coupon. Please try again.");
+          return;
+        }
+      }
+
+      // reservation creation
+      const payload = {
+        showtimeID: state.showtimeId,
+        seatIDList: state.seatIds,
+        userEmail: email,
+        paymentConfirmation: generatePaymentConfirmationNumber(),
+        reservationValue: state.totalprice, // sending total price, not discounted price
+      };
+
+      const response = await api.post("/reservation/create", payload);
+
+      if (response.status === 201) {
+        navigate(`/bookingconfirmation/${response.data}/${email}`);
+      } else {
+        setFormError("Failed to create a reservation. Please try again.");
       }
     } catch (error: any) {
-      if (error.response && error.response.data) {
-        setFormError(error.response.data);
+      if (error.response?.data) {
+        setFormError(
+          typeof error.response.data === "string"
+            ? error.response.data
+            : "An error occurred. Please check your input."
+        );
       } else {
         setFormError("An unexpected error occurred. Please try again.");
       }
@@ -146,14 +199,38 @@ export default function SignedInPurchase() {
     setUseSavedPayment(!useSavedPayment);
   };
 
-  const applyCoupon = () => {
-    // Mock coupon validation logic
-    if (couponCode === "DISCOUNT10") {
-      setAppliedCoupon({ code: couponCode, value: 10 });
-    } else {
-      alert("Invalid coupon code");
+  const applyCoupon = async () => {
+    try {
+      const response = await api.get(
+        `/coupon/get/${encodeURIComponent(couponEmail)}/${encodeURIComponent(
+          couponCode
+        )}`
+      );
+
+      const couponStatus = response.data?.couponStatus;
+      const couponValue = response.data?.couponValue;
+
+      if (couponStatus === "active" && couponValue !== undefined) {
+        setAppliedCoupon({
+          value:
+            couponValue > state.totalprice ? state.totalprice : couponValue,
+          code: couponCode,
+        });
+        setFormError("");
+      } else {
+        setFormError("The coupon is not active.");
+        setAppliedCoupon(null);
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        setFormError(error.response.data);
+      } else {
+        setFormError("An unexpected error occurred. Please try again.");
+      }
+      setAppliedCoupon(null);
+    } finally {
+      setIsSubmitting(false);
     }
-    setCouponCode("");
   };
 
   const totalAfterDiscount = appliedCoupon
@@ -230,7 +307,7 @@ export default function SignedInPurchase() {
                 </div>
                 {appliedCoupon && (
                   <div className="text-primary-400">
-                    <span className="font-medium">Discount:</span> -$
+                    <span className="font-medium">Credit:</span> -$
                     {appliedCoupon.value.toFixed(2)}
                   </div>
                 )}
@@ -430,6 +507,22 @@ export default function SignedInPurchase() {
                         size={20}
                       />
                     </div>
+                    <div className="relative flex-grow">
+                      <input
+                        type="text"
+                        id="couponEmail"
+                        value={couponEmail}
+                        onChange={(e) => setCouponEmail(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                        placeholder="Enter coupon email"
+                        disabled={isSubmitting}
+                      />
+                      <Mail
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        size={20}
+                      />
+                    </div>
+
                     <button
                       type="button"
                       onClick={applyCoupon}
