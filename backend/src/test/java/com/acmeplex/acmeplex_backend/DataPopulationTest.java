@@ -42,6 +42,8 @@ public class DataPopulationTest {
         movie1.setReleaseDate(LocalDate.of(2010, 7, 16));
         movie1.setDuration(148);
         movie1.setGenre("Sci-Fi");
+        movie1.setExclusive(false);
+        movie1.setExclusiveEndDate(LocalDateTime.now());
 
         Movie movie2 = new Movie();
         movie2.setName("The Dark Knight");
@@ -50,6 +52,8 @@ public class DataPopulationTest {
         movie2.setReleaseDate(LocalDate.of(2008, 7, 18));
         movie2.setDuration(152);
         movie2.setGenre("Action");
+        movie2.setExclusive(false);
+        movie2.setExclusiveEndDate(LocalDateTime.now());
 
         Movie movie3 = new Movie();
         movie3.setName("Interstellar");
@@ -58,8 +62,20 @@ public class DataPopulationTest {
         movie3.setReleaseDate(LocalDate.of(2014, 11, 7));
         movie3.setDuration(169);
         movie3.setGenre("Sci-Fi");
+        movie3.setExclusive(false);
+        movie3.setExclusiveEndDate(LocalDateTime.now());
 
-        movieRepository.saveAll(Arrays.asList(movie1, movie2, movie3));
+        Movie movie4 = new Movie();
+        movie4.setName("Avatar 1");
+        movie4.setPoster("ex.jpg");
+        movie4.setDescription("Svatar.");
+        movie4.setReleaseDate(LocalDate.of(2014, 11, 7));
+        movie4.setDuration(169);
+        movie4.setGenre("Sci-Fi");
+        movie4.setExclusive(true);
+        movie4.setExclusiveEndDate(LocalDateTime.now());
+
+        movieRepository.saveAll(Arrays.asList(movie1, movie2, movie3, movie4));
 
         // Create Theatres
         Theatre theatre1 = new Theatre();

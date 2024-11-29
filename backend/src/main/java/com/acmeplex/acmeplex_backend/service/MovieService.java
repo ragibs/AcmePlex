@@ -33,7 +33,18 @@ public class MovieService {
     private EmailService emailService;
 
     public List<Movie> getAllMovies() {
-        return movieRepository.findAll();
+        List<Movie> movies = movieRepository.findAll();
+        if (movies.isEmpty()){
+            throw new IllegalArgumentException("There are currently no movies in the database");
+        }
+        List<Movie> normalMovies = new ArrayList<>();
+        for (Movie movie: movies){
+            if (!movie.isExclusive()){
+                normalMovies.add(movie);
+            }
+        }
+
+        return normalMovies;
     }
 
     public Movie getMovieById(Long id) {
