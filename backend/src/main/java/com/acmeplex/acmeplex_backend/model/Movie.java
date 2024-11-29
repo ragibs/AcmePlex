@@ -22,8 +22,7 @@ public class Movie {
     private int duration; // in minutes
     private String genre;
 
-//    @JsonManagedReference  // This will serialize the list of showtimes for the movie
-    @JsonBackReference // This will prevent the movie from being serialized
+    @JsonManagedReference("movie-showtimes")
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
     private List<Showtime> showtimes;
 
