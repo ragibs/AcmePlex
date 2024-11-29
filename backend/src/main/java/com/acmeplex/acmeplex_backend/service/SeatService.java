@@ -38,10 +38,17 @@ public class SeatService {
         List<Seat> availableSeats = new ArrayList<>();
         List<Seat> bookedSeats = new ArrayList<>();
         List<Seat> seats = showtime.getSeats();
+
         // Loop through all the seats for the current showtime
         int total_seats = seats.size();
         long booked_seat = seats.stream().filter(Seat::isBooked).count();
-        int allowedTicketCount =((int) (0.1 * total_seats)) - (int) booked_seat;
+        int allowedTicketCount;
+        if (showtime.getMovie().isExclusive()){
+            allowedTicketCount = ((int) (0.1 * total_seats)) - (int) booked_seat;
+        } else {
+            allowedTicketCount = total_seats - (int) booked_seat;
+        }
+
 
         double booked_percentage = (double) seats.stream().filter(Seat::isBooked).count() / seats.size();
         if (showtime.getMovie().isExclusive() && allowedTicketCount <= 0){
