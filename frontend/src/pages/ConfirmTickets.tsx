@@ -115,7 +115,7 @@ export default function ConfirmTickets() {
     setFormError(null);
 
     try {
-      // Check if a coupon is applied
+      // check if a coupon is applied
       if (appliedCoupon) {
         const couponValidationResponse = await api.get(
           `/coupon/get/${encodeURIComponent(couponEmail)}/${encodeURIComponent(
@@ -128,25 +128,25 @@ export default function ConfirmTickets() {
           couponValidationResponse?.data?.couponValue
         );
 
-        // Validate coupon
+        // validate coupon
         if (couponStatus !== "active" || !couponBalance || couponBalance <= 0) {
           setFormError(
             "The applied coupon is invalid or has insufficient balance."
           );
-          return; // Early return to prevent further execution
+          return;
         }
 
-        // Calculate remaining balance as a double
+        // convert remaining balance as a double
         const remainingBalance = Math.max(
           couponBalance - state.totalprice,
           0
         ).toFixed(2);
 
-        // Redeem the coupon
+        // redeem the coupon
         const couponRedemptionPayload = {
           email: couponEmail,
           couponCode: appliedCoupon.code,
-          couponValue: parseFloat(remainingBalance), // Convert to double explicitly
+          couponValue: parseFloat(remainingBalance),
         };
 
         const redemptionResponse = await api.put(
@@ -160,7 +160,7 @@ export default function ConfirmTickets() {
         }
       }
 
-      // Reservation creation
+      // reservation creation
       const payload = {
         showtimeID: state.showtimeId,
         seatIDList: state.seatIds,
