@@ -37,9 +37,18 @@ public class SeatService {
         Map<String, List<Seat>> seatStatus = new HashMap<>();
         List<Seat> availableSeats = new ArrayList<>();
         List<Seat> bookedSeats = new ArrayList<>();
-
+        List<Seat> seats = showtime.getSeats();
         // Loop through all the seats for the current showtime
-        for (Seat seat : showtime.getSeats()) {
+        int total_seats = seats.size();
+        long booked_seat = seats.stream().filter(Seat::isBooked).count();
+        double booked_percentage = (double) seats.stream().filter(Seat::isBooked).count() / seats.size();
+        if (showtime.getMovie().isExclusive() && booked_percentage >= 0.1){
+            for (Seat seat: seats){
+                seat.setBooked(true);
+                bookedSeats.add(seat);
+            }
+        }
+        for (Seat seat : seats) {
             if (seat.isBooked()) {
                 bookedSeats.add(seat); // If seat is booked, add to booked list
             } else {
