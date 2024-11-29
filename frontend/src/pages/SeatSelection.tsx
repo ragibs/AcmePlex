@@ -116,8 +116,8 @@ export default function SeatSelection() {
   const renderSeats = () => {
     if (!seats) return null;
 
-    const allSeats = [...seats.available, ...seats.booked].sort((a, b) =>
-      a.seatNumber.localeCompare(b.seatNumber)
+    const allSeats = [...seats.available, ...seats.booked].sort(
+      (a, b) => a.id - b.id
     );
 
     const rows = Array.from(

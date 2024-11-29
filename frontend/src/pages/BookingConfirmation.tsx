@@ -135,7 +135,7 @@ export default function BookingConfirmation() {
             Back to Home
           </Link>
           <Link
-            to="/manage-reservations"
+            to="/getReservation"
             className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center justify-center"
           >
             <List className="mr-2" size={20} />
