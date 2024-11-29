@@ -38,7 +38,7 @@ public class ReservationController {
             Long reservationID = reservationService.createReservation(reservationRequest);
             return new ResponseEntity<>(reservationID, HttpStatus.CREATED);
         } catch (IllegalArgumentException exception){
-            return new ResponseEntity<>("Please check the reservation request" + exception.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Please check the reservation request " + exception.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 

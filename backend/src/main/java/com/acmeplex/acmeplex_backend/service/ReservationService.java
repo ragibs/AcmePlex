@@ -27,6 +27,8 @@ public class ReservationService{
     private RegisteredUserService registeredUserService;
     @Autowired
     private CouponService couponService;
+    @Autowired
+    private SeatService seatService;
 
     public Optional<Reservation> getReservationById(long Id){
         return reservationRepository.findById(Id);
@@ -39,6 +41,10 @@ public class ReservationService{
     public Long createReservation(ReservationRequest reservationRequest){
         if (!userService.userExists(reservationRequest.userEmail())){
             userService.registerUser(reservationRequest.userEmail());
+        }
+
+        if (!seatService.checkSeatAvailability(reservationRequest.seatIDList())){
+            throw new IllegalArgumentException("These seats have already been booked");
         }
         Reservation reservation = new Reservation();
         reservation.setStatus("VALID");

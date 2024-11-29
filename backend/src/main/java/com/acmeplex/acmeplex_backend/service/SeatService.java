@@ -51,4 +51,18 @@ public class SeatService {
         seatStatus.put("booked", bookedSeats);
         return seatStatus;
     }
+
+    public boolean checkSeatAvailability(List<Long> seatIDS){
+        boolean seatsAvailable = true;
+        for (Long seatID: seatIDS){
+            Optional<Seat> seat = seatRepository.findById(seatID);
+            if (seat.isEmpty()){
+                throw new IllegalArgumentException("Invalid Seat ID provided");
+            }
+            if (seat.get().isBooked()){
+                seatsAvailable = false;
+            }
+        }
+        return seatsAvailable;
+    }
 }
