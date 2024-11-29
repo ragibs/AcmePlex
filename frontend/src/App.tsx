@@ -13,6 +13,9 @@ import { Routes, Route } from "react-router-dom";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import NotFound from "./pages/NotFound";
 import CancelConfirmation from "./pages/CancelConfirmation";
+import ExclusiveBooking from "./pages/ExclusiveBooking";
+import ProtectedRoute from "./utils/ProtectedRoute";
+import ExclusiveLogin from "./pages/ExclusiveLogin";
 
 function App() {
   return (
@@ -40,6 +43,15 @@ function App() {
         element={<CancelConfirmation />}
       />
       <Route path="*" element={<NotFound />} />
+      <Route
+        path="/exclusive-booking/:id/:email"
+        element={
+          <ProtectedRoute>
+            <ExclusiveBooking />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/exclusive-login/:id/" element={<ExclusiveLogin />} />
     </Routes>
   );
 }
