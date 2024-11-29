@@ -34,7 +34,8 @@ public class CouponController {
         }
         String email = (String) request.get("email");
         String couponCode = (String) request.get("couponCode");
-        double couponValue = (double) request.get("couponValue");
+        Number couponValueNumber = (Number) request.get("couponValue");
+        double couponValue = couponValueNumber.doubleValue();
         try{
             couponService.redeemCoupon(email, couponCode, couponValue);
             return new ResponseEntity<>("Coupon Redeemed Successfully", HttpStatus.ACCEPTED);

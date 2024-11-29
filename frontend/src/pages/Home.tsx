@@ -7,6 +7,7 @@ import { Movie, Theatre } from "../types";
 import api from "../api/apiConfig";
 import { useMovieContext } from "../context/MovieContext";
 import Cookies from "js-cookie";
+import { Link } from "react-router-dom";
 
 export const Home = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -93,9 +94,11 @@ export const Home = () => {
                       <span className="text-yellow-500">★</span>
                       <span className="text-xs">4.9/5.0</span>
                     </div>
-                    <button className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-xs rounded-lg transition-colors">
-                      View Showtimes
-                    </button>
+                    <Link to={`/searchbytheatre/${theatre.id}/2024-12-03`}>
+                      <button className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-xs rounded-lg transition-colors">
+                        View Showtimes
+                      </button>
+                    </Link>
                   </div>
                 </div>
               </div>

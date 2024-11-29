@@ -1,53 +1,24 @@
-"use client";
-
 import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin, X, Mail } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import api from "../api/apiConfig";
+import { ReservationResponse } from "../types";
+import PacmanLoader from "react-spinners/PacmanLoader";
+import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
 
-// Mock user data
-const user = {
-  email: "john.doe@example.com",
-  isRegistered: true,
+const reservation = {
+  id: 1,
+  reservationNumber: "RES001",
+  movieTitle: "Inception",
+  poster: "/placeholder.svg?height=150&width=100",
+  theater: "Cineplex Downtown",
+  date: "2023-05-20",
+  time: "7:30 PM",
+  seats: ["A1", "A2", "A3"],
+  ticketCount: 3,
+  totalAmount: 45.0,
 };
-
-const reservations = [
-  {
-    id: 1,
-    reservationNumber: "RES001",
-    movieTitle: "Inception",
-    poster: "/placeholder.svg?height=150&width=100",
-    theater: "Cineplex Downtown",
-    date: "2023-05-20",
-    time: "7:30 PM",
-    seats: ["A1", "A2", "A3"],
-    ticketCount: 3,
-    totalAmount: 45.0,
-  },
-  {
-    id: 2,
-    reservationNumber: "RES002",
-    movieTitle: "The Grand Budapest Hotel",
-    poster: "/placeholder.svg?height=150&width=100",
-    theater: "Starlight Cinema",
-    date: "2023-05-25",
-    time: "6:00 PM",
-    seats: ["B5", "B6"],
-    ticketCount: 2,
-    totalAmount: 30.0,
-  },
-  {
-    id: 3,
-    reservationNumber: "RES003",
-    movieTitle: "Black Panther",
-    poster: "/placeholder.svg?height=150&width=100",
-    theater: "Mega Movies",
-    date: "2023-05-30",
-    time: "8:00 PM",
-    seats: ["C7", "C8", "C9", "C10"],
-    ticketCount: 4,
-    totalAmount: 60.0,
-  },
-];
 
 export default function ManageReservation() {
   const containerVariants = {
@@ -66,11 +37,89 @@ export default function ManageReservation() {
     hidden: { y: 20, opacity: 0 },
     visible: { y: 0, opacity: 1 },
   };
+  const navigate = useNavigate();
 
-  const handleCancel = (id: number) => {
-    console.log(`Cancelling reservation ${id}`);
-    // Add logic to cancel reservation here
+  usePreventPageRefresh(
+    "Are you sure you want to leave? Your progress may not be saved."
+  );
+  const [reservationData, setReservationData] =
+    useState<ReservationResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const { email, id } = useParams<{ email: string; id: string }>();
+
+  useEffect(() => {
+    const fetchReservation = async () => {
+      setIsLoading(true);
+      try {
+        const response = await api.get(`/reservation/get/${email}/${id}`);
+        setReservationData(response.data);
+      } catch (err: any) {
+        if (err.response && err.response.status === 406) {
+          setError("This reservation can no longer be canceled.");
+        }
+        setError("Failed to fetch reservation data. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReservation();
+  }, [email, id]);
+
+  const isRegistered = reservationData
+    ? reservationData.reservationValue === reservationData.eligibleRefundValue
+    : false;
+
+  const cancelEligibility = reservationData?.eligibleRefundValue === 0;
+  function extractDateTime(showTime: string): { date: string; time: string } {
+    const dateObj = new Date(showTime);
+
+    const date = dateObj.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+
+    const time = dateObj.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    return { date, time };
+  }
+
+  const { date: showDate, time: showTime } = extractDateTime(
+    reservationData?.showTime || ""
+  );
+
+  const handleCancel = (id: number | undefined, email: string | undefined) => {
+    navigate(
+      `/cancellation-confirmed/${encodeURIComponent(email || "")}/${id}`
+    );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+        <PacmanLoader color="#0891b2" size={50} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+        <h1 className="text-3xl font-bold mb-4">Error</h1>
+        <p className="text-lg text-gray-400 mb-6">{error}</p>
+        <p className="text-sm text-gray-500">
+          Redirecting to the homepage in 5 seconds...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -95,80 +144,99 @@ export default function ManageReservation() {
             Your Reservations
           </h1>
           <div className="mt-4 sm:mt-0 flex items-center">
-            <span className="mr-2">{user.email}</span>
+            <span className="mr-2">{email}</span>
             <span
               className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                user.isRegistered ? "bg-green-500" : "bg-yellow-500"
+                isRegistered ? "bg-green-500" : "bg-yellow-500"
               }`}
             >
-              {user.isRegistered ? "Registered" : "Guest"}
+              {isRegistered ? "Registered" : "Guest"}
             </span>
           </div>
         </motion.div>
 
         <motion.div className="space-y-6" variants={itemVariants}>
-          {reservations.map((reservation) => (
-            <div
-              key={reservation.id}
-              className="bg-gray-800 rounded-lg p-6 shadow-lg"
-            >
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-shrink-0">
-                  <img
-                    src={reservation.poster}
-                    alt={`${reservation.movieTitle} poster`}
-                    style={{ width: "100px", height: "150px" }}
-                    className="rounded-lg shadow-md"
-                  />
+          <div
+            key={reservationData?.reservationID}
+            className="bg-gray-800 rounded-lg p-6 shadow-lg"
+          >
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-shrink-0">
+                <img
+                  src={reservationData?.moviePoster}
+                  alt={`${reservationData?.movieName} poster`}
+                  style={{ width: "100px", height: "150px" }}
+                  className="rounded-lg shadow-md"
+                />
+              </div>
+              <div className="flex-grow">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                  <div>
+                    <h2 className="text-2xl font-medium mb-2 md:mb-0">
+                      {reservationData?.movieName}
+                    </h2>
+                    <p className="text-sm text-gray-400">
+                      Reservation: {reservationData?.reservationID}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() =>
+                      handleCancel(
+                        reservationData?.reservationID,
+                        reservationData?.userEmail
+                      )
+                    }
+                    className={`${
+                      cancelEligibility
+                        ? "bg-gray-500 cursor-not-allowed"
+                        : "bg-red-500 hover:bg-red-600"
+                    } text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center mt-2 md:mt-0`}
+                    disabled={!reservationData || cancelEligibility}
+                  >
+                    {cancelEligibility ? "Not Eligible to Cancel" : "Cancel"}
+                    <X className="ml-2" size={20} />
+                  </button>
                 </div>
-                <div className="flex-grow">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                    <div>
-                      <h2 className="text-2xl font-medium mb-2 md:mb-0">
-                        {reservation.movieTitle}
-                      </h2>
-                      <p className="text-sm text-gray-400">
-                        Reservation: {reservation.reservationNumber}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleCancel(reservation.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-md transition-colors flex items-center mt-2 md:mt-0"
-                    >
-                      Cancel
-                      <X className="ml-2" size={20} />
-                    </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center">
+                    <MapPin className="text-primary-500 mr-2" size={20} />
+                    <span>{reservationData?.theatreName}</span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center">
-                      <MapPin className="text-primary-500 mr-2" size={20} />
-                      <span>{reservation.theater}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="text-primary-500 mr-2" size={20} />
-                      <span>{reservation.date}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="text-primary-500 mr-2" size={20} />
-                      <span>{reservation.time}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Seats:</span>{" "}
-                      {reservation.seats.join(", ")}
-                    </div>
-                    <div>
-                      <span className="font-medium">Tickets:</span>{" "}
-                      {reservation.ticketCount}
-                    </div>
-                    <div>
-                      <span className="font-medium">Total Amount:</span> $
-                      {reservation.totalAmount.toFixed(2)}
-                    </div>
+                  <div className="flex items-center">
+                    <Calendar className="text-primary-500 mr-2" size={20} />
+                    <span>{showDate}</span>
                   </div>
+                  <div className="flex items-center">
+                    <Clock className="text-primary-500 mr-2" size={20} />
+                    <span>{showTime}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Seats:</span>{" "}
+                    {reservationData?.seatName.join(", ")}
+                  </div>
+                  <div>
+                    <span className="font-medium">Tickets:</span>{" "}
+                    {reservationData?.seatName.length}
+                  </div>
+                  <div>
+                    <span className="font-medium">Total Amount:</span> $
+                    {reservationData?.reservationValue}
+                  </div>
+                  <div>
+                    <span className="font-medium">Eligible Refund:</span> $
+                    {reservationData?.eligibleRefundValue}
+                  </div>
+
+                  {cancelEligibility && (
+                    <div className="text-sm text-gray-400 mt-2">
+                      * Showtimes less than 72 hours away are not eligible for
+                      cancellation.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          ))}
+          </div>
         </motion.div>
       </div>
     </motion.div>

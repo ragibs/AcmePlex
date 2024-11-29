@@ -53,7 +53,10 @@ export default function ConfirmTickets() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [formError, setFormError] = React.useState<string | null>(null);
+
   const [couponCode, setCouponCode] = React.useState("");
+  const [couponEmail, setCouponEmail] = React.useState("");
+
   const [appliedCoupon, setAppliedCoupon] = React.useState<{
     code: string;
     value: number;
@@ -110,22 +113,76 @@ export default function ConfirmTickets() {
   const onSubmitGuest = async (data: GuestFormData) => {
     setIsSubmitting(true);
     setFormError(null);
-    const payload = {
-      showtimeID: state.showtimeId,
-      seatIDList: state.seatIds,
-      userEmail: data.email,
-      paymentConfirmation: generatePaymentConfirmationNumber(),
-    };
+
     try {
-      const response = await api.post("/reservation/create", payload);
-      if (response.status === 201) {
-        navigate(
-          `/bookingconfirmation/${response.data.id}/${response.data.user.email}`
+      // check if a coupon is applied
+      if (appliedCoupon) {
+        const couponValidationResponse = await api.get(
+          `/coupon/get/${encodeURIComponent(couponEmail)}/${encodeURIComponent(
+            appliedCoupon.code
+          )}`
         );
+
+        const couponStatus = couponValidationResponse?.data?.couponStatus;
+        const couponBalance = parseFloat(
+          couponValidationResponse?.data?.couponValue
+        );
+
+        // validate coupon
+        if (couponStatus !== "active" || !couponBalance || couponBalance <= 0) {
+          setFormError(
+            "The applied coupon is invalid or has insufficient balance."
+          );
+          return;
+        }
+
+        // convert remaining balance as a double
+        const remainingBalance = Math.max(
+          couponBalance - state.totalprice,
+          0
+        ).toFixed(2);
+
+        // redeem the coupon
+        const couponRedemptionPayload = {
+          email: couponEmail,
+          couponCode: appliedCoupon.code,
+          couponValue: parseFloat(remainingBalance),
+        };
+
+        const redemptionResponse = await api.put(
+          "http://localhost:8080/coupon/redeem",
+          couponRedemptionPayload
+        );
+
+        if (redemptionResponse.status !== 202) {
+          setFormError("Failed to redeem the coupon. Please try again.");
+          return;
+        }
+      }
+
+      // reservation creation
+      const payload = {
+        showtimeID: state.showtimeId,
+        seatIDList: state.seatIds,
+        userEmail: data.email,
+        paymentConfirmation: generatePaymentConfirmationNumber(),
+        reservationValue: state.totalprice, // sending total price, not discounted price
+      };
+
+      const response = await api.post("/reservation/create", payload);
+
+      if (response.status === 201) {
+        navigate(`/bookingconfirmation/${response.data}/${data.email}`);
+      } else {
+        setFormError("Failed to create a reservation. Please try again.");
       }
     } catch (error: any) {
-      if (error.response && error.response.data) {
-        setFormError(error.response.data);
+      if (error.response?.data) {
+        setFormError(
+          typeof error.response.data === "string"
+            ? error.response.data
+            : "An error occurred. Please check your input."
+        );
       } else {
         setFormError("An unexpected error occurred. Please try again.");
       }
@@ -165,14 +222,40 @@ export default function ConfirmTickets() {
     }
   };
 
-  const applyCoupon = () => {
-    // Mock coupon validation logic
-    if (couponCode === "DISCOUNT10") {
-      setAppliedCoupon({ code: couponCode, value: 10 });
-    } else {
-      alert("Invalid coupon code");
+  const applyCoupon = async () => {
+    console.log(couponEmail);
+
+    try {
+      const response = await api.get(
+        `/coupon/get/${encodeURIComponent(couponEmail)}/${encodeURIComponent(
+          couponCode
+        )}`
+      );
+
+      const couponStatus = response.data?.couponStatus;
+      const couponValue = response.data?.couponValue;
+
+      if (couponStatus === "active" && couponValue !== undefined) {
+        setAppliedCoupon({
+          value:
+            couponValue > state.totalprice ? state.totalprice : couponValue,
+          code: couponCode,
+        });
+        setFormError("");
+      } else {
+        setFormError("The coupon is not active.");
+        setAppliedCoupon(null);
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        setFormError(error.response.data);
+      } else {
+        setFormError("An unexpected error occurred. Please try again.");
+      }
+      setAppliedCoupon(null);
+    } finally {
+      setIsSubmitting(false);
     }
-    setCouponCode("");
   };
 
   const totalAfterDiscount = appliedCoupon
@@ -435,6 +518,21 @@ export default function ConfirmTickets() {
                             size={20}
                           />
                         </div>
+                        <div className="relative flex-grow">
+                          <input
+                            type="text"
+                            id="couponEmail"
+                            value={couponEmail}
+                            onChange={(e) => setCouponEmail(e.target.value)}
+                            className="w-full px-3 py-2 bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 pl-10"
+                            placeholder="Enter coupon email"
+                            disabled={isSubmitting}
+                          />
+                          <Mail
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                            size={20}
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={applyCoupon}
@@ -564,6 +662,7 @@ export default function ConfirmTickets() {
         <button
           className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center md:w-auto md:h-auto w-12 h-12 justify-center"
           onClick={handlePrevious}
+          disabled={isSubmitting}
         >
           <ChevronLeft className="md:mr-2" size={20} />
           <span className="hidden md:inline">Change Seats</span>

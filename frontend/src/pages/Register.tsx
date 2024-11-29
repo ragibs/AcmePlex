@@ -111,10 +111,8 @@ export default function Register() {
       );
 
       if (registerResponse.status === 201) {
-        console.log("User registered successfully with payment information");
         setRegistrationSuccess(true);
 
-        // Start countdown
         let timer = 5;
         const countdownInterval = setInterval(() => {
           timer -= 1;
