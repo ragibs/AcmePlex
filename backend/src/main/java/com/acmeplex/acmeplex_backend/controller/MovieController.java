@@ -42,4 +42,11 @@ public class MovieController {
         return showtimeService.getShowtimesByMovieAndDate(movieId, selectedDate); // Pass date to service
     }
 
+    @PostMapping("movie/add")
+    public Movie addMovie(@RequestBody Movie movie) {
+        return movieService.addMovie(movie);
+    }
+
 }
+
+

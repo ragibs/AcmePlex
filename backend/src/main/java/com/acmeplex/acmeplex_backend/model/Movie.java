@@ -22,7 +22,7 @@ public class Movie {
     private int duration; // in minutes
     private String genre;
 
-    @JsonManagedReference("movie-showtimes")
+    @JsonBackReference("movie-showtimes")
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
     private List<Showtime> showtimes;
 

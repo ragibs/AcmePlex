@@ -1,4 +1,5 @@
 package com.acmeplex.acmeplex_backend.model;
+import com.acmeplex.acmeplex_backend.ObserverPattern.Observer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
@@ -7,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class User {
+public class User implements Observer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -43,4 +44,10 @@ public class User {
     public void setReservations(List<Reservation> reservations) {
         this.reservations = reservations;
     }
+
+    @Override
+    public void update(String announcement) {
+        System.out.println("Received update: " + announcement);
+    }
+
 }

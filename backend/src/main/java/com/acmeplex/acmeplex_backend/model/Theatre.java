@@ -16,7 +16,7 @@ public class Theatre {
     private String name;
     private String address;
 
-    @JsonManagedReference("theatre-showtimes")
+    @JsonBackReference("theatre-showtimes")
     @OneToMany(mappedBy = "theatre", cascade = CascadeType.ALL)
     private List<Showtime> showtimes;
 

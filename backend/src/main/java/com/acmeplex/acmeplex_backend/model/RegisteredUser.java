@@ -31,5 +31,9 @@ public class RegisteredUser extends User {
         this.name = name;
     }
 
+    @Override
+    public void update(String announcement) {
+        System.out.println("Received update: " + announcement);
+    }
 
 }

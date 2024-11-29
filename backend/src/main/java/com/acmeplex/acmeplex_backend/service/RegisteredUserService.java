@@ -1,5 +1,6 @@
 package com.acmeplex.acmeplex_backend.service;
 
+import com.acmeplex.acmeplex_backend.ObserverPattern.Announcement;
 import com.acmeplex.acmeplex_backend.model.PaymentInfo;
 import com.acmeplex.acmeplex_backend.model.RegisteredUser;
 import com.acmeplex.acmeplex_backend.repository.PaymentInfoRepository;
@@ -21,6 +22,9 @@ public class RegisteredUserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final PaymentInfoRepository paymentInfoRepository;
 
+    @Autowired
+    private Announcement announcementService;
+
     public RegisteredUserService(RegisteredUserRepository registeredUserRepository, PasswordEncoder passwordEncoder, PaymentInfoRepository paymentInfoRepository) {
         this.registeredUserRepository = registeredUserRepository;
         this.passwordEncoder = passwordEncoder;
@@ -37,6 +41,8 @@ public class RegisteredUserService implements UserDetailsService {
         RegisteredUser savedUser = registeredUserRepository.save(registeredUser);
         paymentInfo.setRegisteredUser(savedUser);
         paymentInfoRepository.save(paymentInfo);
+
+        announcementService.attach(registeredUser);
     }
 
     @Override

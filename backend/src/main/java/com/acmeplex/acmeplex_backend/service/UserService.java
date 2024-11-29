@@ -1,4 +1,5 @@
 package com.acmeplex.acmeplex_backend.service;
+import com.acmeplex.acmeplex_backend.ObserverPattern.Announcement;
 import com.acmeplex.acmeplex_backend.model.User;
 import com.acmeplex.acmeplex_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,9 @@ public class UserService {
     @Autowired
     private final UserRepository userRepository;
 
+    @Autowired
+    private Announcement announcementService;
+
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -22,6 +26,8 @@ public class UserService {
         User user = new User();
         user.setEmail(email);
         userRepository.save(user);
+
+        announcementService.attach(user);
     }
 
     public boolean userExists(String email){
