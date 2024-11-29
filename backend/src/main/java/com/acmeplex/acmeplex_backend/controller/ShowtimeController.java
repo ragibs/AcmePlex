@@ -25,8 +25,8 @@ public class ShowtimeController {
 
     // Endpoint to get available and booked seats for a specific showtime
     @GetMapping("/showtime/{showtimeId}/seats")
-    public ResponseEntity<Map<String, List<Seat>>> getSeatsByShowtime(@PathVariable Long showtimeId) {
-        Map<String, List<Seat>> seats = seatService.getSeatsByShowtime(showtimeId);
+    public ResponseEntity<Map<String, Object>> getSeatsByShowtime(@PathVariable Long showtimeId) {
+        Map<String, Object> seats = seatService.getSeatsByShowtime(showtimeId);
         return ResponseEntity.ok(seats);
     }
 }

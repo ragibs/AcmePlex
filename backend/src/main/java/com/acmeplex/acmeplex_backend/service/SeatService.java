@@ -22,7 +22,7 @@ public class SeatService {
     @Autowired
     private ShowtimeRepository showtimeRepository;
 
-    public Map<String, List<Seat>> getSeatsByShowtime(Long showtimeId) {
+    public Map<String, Object> getSeatsByShowtime(Long showtimeId) {
         // Find the showtime by ID
         Optional<Showtime> optionalShowtime = showtimeRepository.findById(showtimeId);
 
@@ -34,30 +34,34 @@ public class SeatService {
         Showtime showtime = optionalShowtime.get();
 
         // Map to store available and booked seats
-        Map<String, List<Seat>> seatStatus = new HashMap<>();
+        Map<String, Object> seatStatus = new HashMap<>();
         List<Seat> availableSeats = new ArrayList<>();
         List<Seat> bookedSeats = new ArrayList<>();
         List<Seat> seats = showtime.getSeats();
         // Loop through all the seats for the current showtime
         int total_seats = seats.size();
         long booked_seat = seats.stream().filter(Seat::isBooked).count();
+        int allowedTicketCount =((int) (0.1 * total_seats)) - (int) booked_seat;
+
         double booked_percentage = (double) seats.stream().filter(Seat::isBooked).count() / seats.size();
-        if (showtime.getMovie().isExclusive() && booked_percentage >= 0.1){
+        if (showtime.getMovie().isExclusive() && allowedTicketCount <= 0){
             for (Seat seat: seats){
                 seat.setBooked(true);
                 bookedSeats.add(seat);
             }
-        }
-        for (Seat seat : seats) {
-            if (seat.isBooked()) {
-                bookedSeats.add(seat); // If seat is booked, add to booked list
-            } else {
-                availableSeats.add(seat); // Otherwise, add to available list
+        } else {
+            for (Seat seat : seats) {
+                if (seat.isBooked()) {
+                    bookedSeats.add(seat); // If seat is booked, add to booked list
+                } else {
+                    availableSeats.add(seat); // Otherwise, add to available list
+                }
             }
-        }
 
+        }
         seatStatus.put("available", availableSeats);
         seatStatus.put("booked", bookedSeats);
+        seatStatus.put("allowedSeatCount", allowedTicketCount);
         return seatStatus;
     }
 
