@@ -113,7 +113,7 @@ public class ReservationService{
         reservationConfirmation.setReservationStatus(reservation.getStatus());
 
         double eligibleRefundValue = reservation.getReservationValue();
-        if (reservation.getStatus().equals("CANCELLED")) {
+        if (!reservationCanBeCancelled(reservationID)) {
             eligibleRefundValue = 0;
         } else if (!(reservation.getUser() instanceof RegisteredUser)) {
             eligibleRefundValue *= 0.85;
