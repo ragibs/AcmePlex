@@ -69,7 +69,7 @@ public class Announcement implements Subject{
         // Notify registered users first (a couple of days earlier)
         for (Observer observer : registeredUsers) {
             observer.update(announcement);
-            movieService.sendEmailForAnnouncement(observer.getEmail(), "Movie Announcement", announcement);
+            movieService.sendEmailForAnnouncement(observer.getEmail(), "Movie Announcement", announcement, "pre-public-announcement");
         }
 
 
@@ -89,7 +89,7 @@ public class Announcement implements Subject{
                 Thread.sleep(minutesDelay * 60 * 1000); // Convert days to milliseconds daysDelay * 24 * 60 * 60 * 1000
                 for (Observer observer : regularUsers) {
                     observer.update(announcement);
-                    movieService.sendEmailForAnnouncement(observer.getEmail(), "Movie Announcement", announcement);
+                    movieService.sendEmailForAnnouncement(observer.getEmail(), "Movie Announcement", announcement, "public-announcement");
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
