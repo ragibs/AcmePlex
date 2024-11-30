@@ -44,14 +44,14 @@ function App() {
       />
       <Route path="*" element={<NotFound />} />
       <Route
-        path="/exclusive-booking/:email/:date"
+        path="/exclusive-booking/:email/"
         element={
           <ProtectedRoute>
             <ExclusiveBooking />
           </ProtectedRoute>
         }
       />
-      <Route path="/exclusive-login/:date" element={<ExclusiveLogin />} />
+      <Route path="/exclusive-login/" element={<ExclusiveLogin />} />
     </Routes>
   );
 }

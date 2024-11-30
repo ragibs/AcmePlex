@@ -11,10 +11,9 @@ import {
   ChevronUp,
   Tag,
   Loader,
-  Info,
   Minus,
   Plus,
-  DollarSign,
+  AlertCircle,
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { generatePaymentConfirmationNumber } from "../utils/generatePaymentConfirmationNumber";
@@ -24,6 +23,7 @@ import PacmanLoader from "react-spinners/PacmanLoader";
 import Cookies from "js-cookie";
 import { PaymentInfo } from "../types";
 import { formatTimeToAmPm } from "../utils/formatTimeToAmPm";
+import { useMovieContext } from "../context/MovieContext";
 
 const TICKET_PRICE = 10;
 
@@ -36,20 +36,18 @@ interface Seat {
 interface SeatsResponse {
   booked: Seat[];
   available: Seat[];
+  allowedSeatCount: number;
 }
 
 export default function ExclusiveBooking() {
+  const { state, updateState } = useMovieContext();
+
   const [seats, setSeats] = useState<SeatsResponse | null>(null);
   const [ticketCount, setTicketCount] = useState(0);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [selectedSeatsId, setSelectedSeatsId] = useState<string[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
-
-  const [poster, setPoster] = useState<string>();
-  const [theatre, setTheatre] = useState<string>();
-  const [showtimeDate, setShowtimeDate] = useState<string>();
-  const [showtime, setShowtime] = useState<string>();
-  const [movie, setMovie] = useState<string>();
+  const [showtimeID, setShowtimeID] = useState<string>();
 
   const [useSavedPayment, setUseSavedPayment] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
@@ -65,7 +63,7 @@ export default function ExclusiveBooking() {
   } | null>(null);
   const [couponEmail, setCouponEmail] = useState("");
 
-  const { id, email, date } = useParams();
+  const { id, email } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,7 +92,7 @@ export default function ExclusiveBooking() {
 
         const movieId = movieResponse.data[0].id;
         const showtimeResponse = await api.get(
-          `/movie/${movieId}/showtimes?selectedDate=${date}`,
+          `/movie/${movieId}/showtimes?selectedDate=2024-11-03`,
           {
             headers: {
               Authorization: `Bearer ${Cookies.get("user")?.replace(
@@ -107,19 +105,24 @@ export default function ExclusiveBooking() {
         );
 
         const showtimeId = showtimeResponse.data.theatres[0].showtimes[0].id; // Adjust key to match your API response structure
-        setMovie(showtimeResponse.data.title);
-        setPoster(showtimeResponse.data.poster);
-        setTheatre(showtimeResponse.data.theatres[0].name);
-        setShowtimeDate(
+
+        updateState("moviename", showtimeResponse.data.title);
+        updateState("poster", showtimeResponse.data.poster);
+        updateState("theatre", showtimeResponse.data.theatres[0].name);
+        updateState(
+          "date",
           new Date(showtimeResponse.data.theatres[0].showtimes[0].startTime)
             .toISOString()
             .split("T")[0]
         );
-        setShowtime(
+        updateState(
+          "showtime",
           formatTimeToAmPm(
             showtimeResponse.data.theatres[0].showtimes[0].startTime
           )
         );
+
+        setShowtimeID(showtimeId);
 
         const [seatsResponse, paymentResponse] = await Promise.all([
           api.get(`/showtime/${showtimeId}/seats`),
@@ -153,7 +156,7 @@ export default function ExclusiveBooking() {
   useEffect(() => {
     setSelectedSeats([]);
     setTotalPrice(ticketCount * TICKET_PRICE);
-    //   updateState("totalprice", ticketCount * TICKET_PRICE);
+    updateState("totalprice", ticketCount * TICKET_PRICE);
   }, [ticketCount]);
 
   const containerVariants = {
@@ -308,7 +311,7 @@ export default function ExclusiveBooking() {
       }
 
       const payload = {
-        showtimeID: id,
+        showtimeID: showtimeID,
         seatIDList: selectedSeatsId,
         userEmail: email,
         paymentConfirmation: generatePaymentConfirmationNumber(),
@@ -358,6 +361,31 @@ export default function ExclusiveBooking() {
     );
   }
 
+  if (seats?.allowedSeatCount === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
+        <AlertCircle size={64} className="text-red-500 mb-4" />{" "}
+        <h1 className="text-3xl font-bold mb-4">No Seats Available</h1>
+        <p className="text-lg text-gray-400 mb-6">
+          Unfortunately, no seats are currently available for this showtime.
+        </p>
+        <button
+          onClick={() => navigate("/")}
+          className="bg-primary-500 hover:bg-primary-600 text-white py-2 px-4 rounded-md"
+        >
+          Go Back to Homepage
+        </button>
+      </div>
+    );
+  }
+
+  if (
+    seats?.allowedSeatCount !== undefined &&
+    ticketCount > seats.allowedSeatCount
+  ) {
+    setTicketCount(seats.allowedSeatCount);
+  }
+
   return (
     <motion.div
       className="min-h-screen bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8"
@@ -378,25 +406,25 @@ export default function ExclusiveBooking() {
           <motion.div className="lg:w-1/2" variants={itemVariants}>
             <div className="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
               <img
-                src={poster}
-                alt={movie}
+                src={state.poster}
+                alt={state.moviename}
                 width="200"
                 height="300"
                 className="mx-auto mb-4 rounded-lg"
               />
-              <h2 className="text-2xl font-medium mb-4">{movie}</h2>
+              <h2 className="text-2xl font-medium mb-4">{state.moviename}</h2>
               <div className="space-y-2">
                 <div className="flex items-center">
                   <MapPin className="text-primary-500 mr-2" size={20} />
-                  <span>{theatre}</span>
+                  <span>{state.theatre}</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="text-primary-500 mr-2" size={20} />
-                  <span>{showtimeDate}</span>
+                  <span>{state.date}</span>
                 </div>
                 <div className="flex items-center">
                   <Clock className="text-primary-500 mr-2" size={20} />
-                  <span>{showtime}</span>
+                  <span>{state.showtime}</span>
                 </div>
               </div>
             </div>

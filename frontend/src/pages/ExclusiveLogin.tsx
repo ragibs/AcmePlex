@@ -43,7 +43,7 @@ export default function ExclusiveLogin() {
 
       if (response.status === 200) {
         Cookies.set("user", JSON.stringify(await response.data));
-        navigate(`/exclusive-booking/${data.email}/${date}`);
+        navigate(`/exclusive-booking/${encodeURI(data.email)}`);
       } else {
         setFormError(
           "Login failed. Please check your credentials and try again."

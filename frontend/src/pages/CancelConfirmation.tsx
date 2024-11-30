@@ -7,7 +7,6 @@ import PacmanLoader from "react-spinners/PacmanLoader";
 
 export default function CancelConfirmation() {
   const { email, reservationId } = useParams();
-  const couponId = "MOVIEFAN2024";
   const currentDate = new Date();
   const expirationDate = new Date(
     currentDate.setFullYear(currentDate.getFullYear() + 1)
