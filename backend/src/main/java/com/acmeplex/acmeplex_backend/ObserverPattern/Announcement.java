@@ -1,7 +1,9 @@
 package com.acmeplex.acmeplex_backend.ObserverPattern;
 
+import com.acmeplex.acmeplex_backend.model.Movie;
 import com.acmeplex.acmeplex_backend.model.RegisteredUser;
 import com.acmeplex.acmeplex_backend.model.User;
+import com.acmeplex.acmeplex_backend.repository.MovieRepository;
 import com.acmeplex.acmeplex_backend.repository.UserRepository;
 import com.acmeplex.acmeplex_backend.service.MovieService;
 import jakarta.annotation.PostConstruct;
@@ -20,6 +22,9 @@ public class Announcement implements Subject{
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private MovieRepository movieRepository;
 
 
     @Autowired
@@ -75,7 +80,7 @@ public class Announcement implements Subject{
 
         // Schedule regular users to be notified after a delay (e.g., 2 days later)
         // Here we delay the notification to regular users
-        notifyRegularUsersWithDelay(announcement, 2); // Delay of 2 days for regular users
+        notifyRegularUsersWithDelay(announcement, 1);
 
 
     }
@@ -86,11 +91,20 @@ public class Announcement implements Subject{
         // Use a separate thread or scheduling service to delay the notification to regular users
         new Thread(() -> {
             try {
-                Thread.sleep(minutesDelay * 60 * 1000); // Convert days to milliseconds daysDelay * 24 * 60 * 60 * 1000
+                Thread.sleep(minutesDelay * 60 * 1000);
+
+                Movie movie = movieRepository.findByName(announcement);
+                if (movie != null) {
+                    // Change movie's isExclusive to false
+                    movie.setExclusive(false);
+                    movieRepository.save(movie);  // Save the updated movie
+                }
+
                 for (Observer observer : regularUsers) {
                     observer.update(announcement);
                     movieService.sendEmailForAnnouncement(observer.getEmail(), "Movie Announcement", announcement, "public-announcement");
                 }
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
