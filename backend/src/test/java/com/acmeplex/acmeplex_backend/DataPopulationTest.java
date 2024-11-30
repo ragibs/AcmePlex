@@ -65,17 +65,8 @@ public class DataPopulationTest {
         movie3.setExclusive(false);
         movie3.setExclusiveEndDate(LocalDateTime.now());
 
-        Movie movie4 = new Movie();
-        movie4.setName("Avatar 1");
-        movie4.setPoster("ex.jpg");
-        movie4.setDescription("Svatar.");
-        movie4.setReleaseDate(LocalDate.of(2014, 11, 7));
-        movie4.setDuration(169);
-        movie4.setGenre("Sci-Fi");
-        movie4.setExclusive(true);
-        movie4.setExclusiveEndDate(LocalDateTime.now());
 
-        movieRepository.saveAll(Arrays.asList(movie1, movie2, movie3, movie4));
+        movieRepository.saveAll(Arrays.asList(movie1, movie2, movie3));
 
         // Create Theatres
         Theatre theatre1 = new Theatre();
@@ -91,7 +82,7 @@ public class DataPopulationTest {
         // Define the specific day: Dec 3, 2024
         LocalDateTime startDate = LocalDateTime.of(2024, 12, 3, 10, 0); // First showtime on Dec 3, 2024 at 10:00 AM
         List<Theatre> theatres = Arrays.asList(theatre1, theatre2);  // List of theatres
-        List<Movie> movies = Arrays.asList(movie1, movie2, movie3, movie4); // List of movies
+        List<Movie> movies = Arrays.asList(movie1, movie2, movie3); // List of movies
 
         // Create showtimes: 3 showtimes per movie in both theatres, all on Dec 3, 2024
         for (Movie movie : movies) {

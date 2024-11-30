@@ -62,16 +62,22 @@
         font-weight: 300;
         color: rgba(255, 255, 255, 0.9);
     }
-    .member-badge {
-        display: inline-block;
-        padding: 6px 12px;
-        background: rgba(103, 232, 249, 0.1);
-        border: 1px solid rgba(103, 232, 249, 0.3);
+    .features {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin: 24px 0;
+    }
+    .feature {
+        background: rgba(8, 145, 178, 0.1);
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(8, 145, 178, 0.2);
+    }
+    .feature strong {
         color: #67e8f9;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 500;
-        margin-bottom: 16px;
+        display: block;
+        margin-bottom: 8px;
     }
     .btn {
         display: inline-block;
@@ -116,27 +122,39 @@
         .announcement {
             padding: 16px;
         }
+        .features {
+            grid-template-columns: 1fr;
+        }
     }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>Exclusive Member Access!</h1>
+    <h1>Exciting New Release!</h1>
   </div>
   <div class="content">
-    <span class="member-badge">Member Exclusive</span>
-
     <div class="announcement">
-      <p>Thank you for being a valued member of AcmePlex!</p>
+      <p>Get ready for an incredible cinematic experience!</p>
       <strong th:text="${announcement}"></strong>
     </div>
 
-    <div class="message">
-      As an AcmePlex member, you get exclusive pre-release access to book tickets for this upcoming blockbuster before the general public. Don't miss out on securing the best seats!
+    <div class="features">
+      <div class="feature">
+        <strong>Early Access</strong>
+        <p>Become a member to book tickets before everyone else</p>
+      </div>
+      <div class="feature">
+        <strong>Best Seats</strong>
+        <p>Members get priority seating selection</p>
+      </div>
     </div>
 
-    <a href="https://acme-plex.vercel.app/exclusive-login" class="btn">Book Your Tickets Now</a>
+    <div class="message">
+      Join AcmePlex today to enjoy exclusive benefits and early access to upcoming blockbusters!
+    </div>
+
+    <a href="https://acme-plex.vercel.app" class="btn">Book Now</a>
   </div>
   <div class="footer">
     <p>Questions? We're here to help! Contact us at <a href="mailto:acmeplex.notify@gmail.com">acmeplex.notify@gmail.com</a></p>
