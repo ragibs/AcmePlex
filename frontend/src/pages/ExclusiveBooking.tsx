@@ -19,11 +19,11 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import { generatePaymentConfirmationNumber } from "../utils/generatePaymentConfirmationNumber";
 import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
-import { useMovieContext } from "../context/MovieContext";
 import api from "../api/apiConfig";
 import PacmanLoader from "react-spinners/PacmanLoader";
 import Cookies from "js-cookie";
 import { PaymentInfo } from "../types";
+import { formatTimeToAmPm } from "../utils/formatTimeToAmPm";
 
 const TICKET_PRICE = 10;
 
@@ -45,6 +45,12 @@ export default function ExclusiveBooking() {
   const [selectedSeatsId, setSelectedSeatsId] = useState<string[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
 
+  const [poster, setPoster] = useState<string>();
+  const [theatre, setTheatre] = useState<string>();
+  const [showtimeDate, setShowtimeDate] = useState<string>();
+  const [showtime, setShowtime] = useState<string>();
+  const [movie, setMovie] = useState<string>();
+
   const [useSavedPayment, setUseSavedPayment] = useState(true);
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [newCardName, setNewCardName] = useState("");
@@ -59,12 +65,11 @@ export default function ExclusiveBooking() {
   } | null>(null);
   const [couponEmail, setCouponEmail] = useState("");
 
-  const { id, email } = useParams();
+  const { id, email, date } = useParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const { state, updateState } = useMovieContext();
   const navigate = useNavigate();
 
   usePreventPageRefresh(
@@ -77,8 +82,47 @@ export default function ExclusiveBooking() {
       setError(null);
 
       try {
+        const movieResponse = await api.get(`/movies/exclusive`, {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("user")?.replace(
+              /^"|"$/g,
+              ""
+            )}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const movieId = movieResponse.data[0].id;
+        const showtimeResponse = await api.get(
+          `/movie/${movieId}/showtimes?selectedDate=${date}`,
+          {
+            headers: {
+              Authorization: `Bearer ${Cookies.get("user")?.replace(
+                /^"|"$/g,
+                ""
+              )}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const showtimeId = showtimeResponse.data.theatres[0].showtimes[0].id; // Adjust key to match your API response structure
+        setMovie(showtimeResponse.data.title);
+        setPoster(showtimeResponse.data.poster);
+        setTheatre(showtimeResponse.data.theatres[0].name);
+        setShowtimeDate(
+          new Date(showtimeResponse.data.theatres[0].showtimes[0].startTime)
+            .toISOString()
+            .split("T")[0]
+        );
+        setShowtime(
+          formatTimeToAmPm(
+            showtimeResponse.data.theatres[0].showtimes[0].startTime
+          )
+        );
+
         const [seatsResponse, paymentResponse] = await Promise.all([
-          api.get(`/showtime/${id}/seats`),
+          api.get(`/showtime/${showtimeId}/seats`),
           api.get(`/payment/${email}`, {
             headers: {
               Authorization: `Bearer ${Cookies.get("user")?.replace(
@@ -93,6 +137,7 @@ export default function ExclusiveBooking() {
         setSeats(seatsResponse.data);
         setPaymentInfo(paymentResponse.data);
       } catch (err) {
+        console.error(err);
         setError("Failed to fetch necessary data.");
         setTimeout(() => {
           navigate("/");
@@ -108,7 +153,7 @@ export default function ExclusiveBooking() {
   useEffect(() => {
     setSelectedSeats([]);
     setTotalPrice(ticketCount * TICKET_PRICE);
-    updateState("totalprice", ticketCount * TICKET_PRICE);
+    //   updateState("totalprice", ticketCount * TICKET_PRICE);
   }, [ticketCount]);
 
   const containerVariants = {
@@ -206,8 +251,10 @@ export default function ExclusiveBooking() {
       }
     } catch (error: any) {
       setFormError(
-        error.response?.data ||
-          "An unexpected error occurred. Please try again."
+        typeof error.response?.data === "string"
+          ? error.response?.data
+          : error.response?.data?.error ||
+              "An unexpected error occurred. Please try again."
       );
       setAppliedCoupon(null);
     }
@@ -277,8 +324,10 @@ export default function ExclusiveBooking() {
       }
     } catch (error: any) {
       setFormError(
-        error.response?.data ||
-          "An unexpected error occurred. Please try again."
+        typeof error.response?.data === "string"
+          ? error.response?.data
+          : error.response?.data?.error ||
+              "An unexpected error occurred. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -329,25 +378,25 @@ export default function ExclusiveBooking() {
           <motion.div className="lg:w-1/2" variants={itemVariants}>
             <div className="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
               <img
-                src={state.poster}
-                alt={state.moviename}
+                src={poster}
+                alt={movie}
                 width="200"
                 height="300"
                 className="mx-auto mb-4 rounded-lg"
               />
-              <h2 className="text-2xl font-medium mb-4">{state.moviename}</h2>
+              <h2 className="text-2xl font-medium mb-4">{movie}</h2>
               <div className="space-y-2">
                 <div className="flex items-center">
                   <MapPin className="text-primary-500 mr-2" size={20} />
-                  <span>{state.theatre}</span>
+                  <span>{theatre}</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="text-primary-500 mr-2" size={20} />
-                  <span>{state.date}</span>
+                  <span>{showtimeDate}</span>
                 </div>
                 <div className="flex items-center">
                   <Clock className="text-primary-500 mr-2" size={20} />
-                  <span>{state.showtime}</span>
+                  <span>{showtime}</span>
                 </div>
               </div>
             </div>

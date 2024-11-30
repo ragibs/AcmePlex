@@ -18,7 +18,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function ExclusiveLogin() {
-  const { id } = useParams();
+  const { id, date } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -43,7 +43,7 @@ export default function ExclusiveLogin() {
 
       if (response.status === 200) {
         Cookies.set("user", JSON.stringify(await response.data));
-        navigate(`/exclusive-booking/${id}/${data.email}`);
+        navigate(`/exclusive-booking/${data.email}/${date}`);
       } else {
         setFormError(
           "Login failed. Please check your credentials and try again."
