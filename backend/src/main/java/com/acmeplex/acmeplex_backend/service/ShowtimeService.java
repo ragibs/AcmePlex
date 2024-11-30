@@ -3,6 +3,7 @@ package com.acmeplex.acmeplex_backend.service;
 import com.acmeplex.acmeplex_backend.model.Movie;
 import com.acmeplex.acmeplex_backend.model.Showtime;
 import com.acmeplex.acmeplex_backend.model.Theatre;
+import com.acmeplex.acmeplex_backend.repository.MovieRepository;
 import com.acmeplex.acmeplex_backend.repository.ShowtimeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,14 +23,25 @@ public class ShowtimeService {
     public ShowtimeService(ShowtimeRepository showtimeRepository) {
         this.showtimeRepository = showtimeRepository;
     }
-
+    @Autowired
+    private MovieRepository movieRepository;
     public Map<String, Object> getShowtimesByMovieAndDate(Long movieId, String selectedDate) {
         // Parse the selected date string (e.g., "2024-11-18") to a LocalDate
         LocalDate date = LocalDate.parse(selectedDate);
-
         // Calculate the start and end of the selected date (from midnight to the end of the day)
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        Optional<Movie> movieOptional = movieRepository.findById(movieId);
+        if (movieOptional.isEmpty()){
+            throw new IllegalArgumentException("Invalid Movie ID");
+        }
+        if (movieOptional.get().isExclusive()){
+            List<LocalDateTime> startAndEndTime = movieStartAndEnd(movieOptional.get());
+            startOfDay = startAndEndTime.get(0);
+            endOfDay = startAndEndTime.get(1);
+        }
+
 
         // Fetch the showtimes for the given movie and date range
         List<Showtime> showtimes = showtimeRepository.findByMovieIdAndDateRange(movieId, startOfDay, endOfDay);
@@ -139,5 +151,14 @@ public class ShowtimeService {
         // Add filtered movies to the response
         response.put("movies", movies.values());
         return response;
+    }
+
+    public List<LocalDateTime> movieStartAndEnd(Movie movie){
+            List<Showtime> showtimes = movie.getShowtimes();
+            LocalDate date = showtimes.get(0).getStartTime().toLocalDate();
+            List<LocalDateTime> dateList = new ArrayList<>();
+            dateList.add(date.atStartOfDay());
+            dateList.add(date.atTime(LocalTime.MAX));
+            return dateList;
     }
 }
