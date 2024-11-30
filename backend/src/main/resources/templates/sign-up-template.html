@@ -117,7 +117,7 @@
         <h1>Welcome to AcmePlex!</h1>
     </div>
     <div class="content">
-        <p>Hi <strong>{{email}}</strong>,</p>
+        <p>Hi <strong th:text="${email}">Customer</strong>,</p>
 
         <div class="welcome-message">
             <p>Thank you for joining AcmePlex! We're thrilled to have you as part of our cinema community.</p>
@@ -138,7 +138,7 @@
             </div>
         </div>
 
-        <a href="{{acmeplexLink}}" class="btn">Start Exploring</a>
+        <a href="https://acme-plex.vercel.app/" class="btn">Start Exploring</a>
     </div>
     <div class="footer">
         <p>Questions? We're here to help! Contact us at <a href="mailto:acmeplex.notify@gmail.com">acmeplex.notify@gmail.com</a></p>

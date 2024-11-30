@@ -23,7 +23,6 @@ public class EmailService {
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
         String htmlContent = templateEngine.process(templateName, context);
 
         helper.setTo(to);

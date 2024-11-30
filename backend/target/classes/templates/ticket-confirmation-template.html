@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -148,15 +148,14 @@
         <h1>Your Ticket Is Confirmed!</h1>
     </div>
     <div class="content">
-        <p>Hi <strong>{{email}}</strong>,</p>
+        <p>Hi <strong th:text="${email}">Customer</strong>,</p>
         <p>Thank you for booking your movie ticket with AcmePlex. Here are your ticket details:</p>
 
         <div class="details">
-            <p><strong>Movie</strong> {{movieTitle}}</p>
-            <p><strong>Date</strong> {{date}}</p>
-            <p><strong>Showtime</strong> {{showtime}}</p>
-            <p><strong>Seat</strong> {{seat}}</p>
-            <p><strong>Theatre</strong> {{theatreName}}</p>
+            <p><strong>Movie</strong> <span th:text="${movieTitle}">Movie Title</span></p>
+            <p><strong>Date</strong> <span th:text="${date}">Movie Date</span></p>
+            <p><strong>Showtime</strong> <span th:text="${showtime}">Movie Showtime</span></p>
+            <p><strong>Theatre</strong> <span th:text="${theatreName}">Theatre Name</span></p>
         </div>
 
         <div class="qr-code">
@@ -169,8 +168,8 @@
         </div>
 
         <div class="actions">
-            <a href="{{walletUrl}}" class="btn">Add to Wallet</a>
-            <a href="{{reservationLink}}" class="btn secondary">Manage Booking</a>
+            <a href="https://acme-plex.vercel.app/getreservation" class="btn">Add to Wallet</a>
+            <a href="https://acme-plex.vercel.app/getreservation" class="btn secondary">Manage Booking</a>
         </div>
     </div>
     <div class="footer">

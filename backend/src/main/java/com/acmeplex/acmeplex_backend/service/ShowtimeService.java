@@ -161,4 +161,9 @@ public class ShowtimeService {
             dateList.add(date.atTime(LocalTime.MAX));
             return dateList;
     }
+
+    public Showtime getShowtimeById(Long showtimeId) {
+        return showtimeRepository.findById(showtimeId)
+                .orElseThrow(() -> new IllegalArgumentException("Showtime with ID " + showtimeId + " not found"));
+    }
 }
