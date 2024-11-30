@@ -3,16 +3,18 @@ package com.acmeplex.acmeplex_backend.service;
 import com.acmeplex.acmeplex_backend.model.*;
 import com.acmeplex.acmeplex_backend.repository.ReservationRepository;
 import com.acmeplex.acmeplex_backend.repository.UserRepository;
+import jakarta.mail.MessagingException;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.time.format.DateTimeFormatter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import org.thymeleaf.context.Context;
+
 
 @Service
 public class ReservationService{
@@ -29,6 +31,10 @@ public class ReservationService{
     private CouponService couponService;
     @Autowired
     private SeatService seatService;
+    @Autowired
+    private EmailService emailService;
+    @Autowired
+    private ShowtimeService showtimeService;
 
     public Optional<Reservation> getReservationById(long Id){
         return reservationRepository.findById(Id);
@@ -56,6 +62,30 @@ public class ReservationService{
         for (Long seatID: reservationRequest.seatIDList()){
             ticketService.createTicket(reservationRequest.showtimeID(), seatID, reservation.getId());
         }
+
+        Showtime showtime = showtimeService.getShowtimeById(reservationRequest.showtimeID());
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("h:mm a");
+
+        Context context = new Context();
+        context.setVariable("email", reservationRequest.userEmail());
+        context.setVariable("movieTitle", showtime.getMovie().getName());
+        context.setVariable("date", showtime.getStartTime().format(dateFormatter));
+        context.setVariable("showtime", showtime.getStartTime().format(timeFormatter));
+        context.setVariable("theatreName", showtime.getTheatre().getName());
+
+        try {
+            emailService.sendEmail(
+                    reservationRequest.userEmail(),
+                    "Your Ticket Confirmation",
+                    "ticket-confirmation-template",
+                    context
+            );
+        } catch ( MessagingException error) {
+            System.err.println("Failed to send email: " + error.getMessage());
+        }
+
+
         return reservation.getId();
     }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -116,25 +116,25 @@
         <h1>Your Ticket Has Been Cancelled</h1>
     </div>
     <div class="content">
-        <p>Hi <strong>{{email}}</strong>,</p>
+        <p>Hi <strong th:text="${email}">Customer</strong>,</p>
         <p>We're sorry to see you cancel your ticket. Here are the details of your cancellation:</p>
 
         <div class="details">
-            <p><strong>Movie</strong> {{movieTitle}}</p>
-            <p><strong>Date</strong> {{date}}</p>
-            <p><strong>Showtime</strong> {{showtime}}</p>
-            <p><strong>Seat</strong> {{seat}}</p>
-            <p><strong>Theatre</strong> {{theatreName}}</p>
-            <p><strong>Refund</strong> ${{refundAmount}}</p>
+            <p><strong>Movie</strong> <span th:text="${movieTitle}">Movie Title</span></p>
+            <p><strong>Date</strong> <span th:text="${date}">Booking Date</span></p>
+            <p><strong>Showtime</strong> <span th:text="${showtime}">Show Time</span></p>
+            <p><strong>Seat</strong> <span th:text="${seat}">Seat Number</span></p>
+            <p><strong>Theatre</strong> <span th:text="${theatreName}">Theatre Name</span></p>
+            <p><strong>Refund</strong> $<span th:text="${refundAmount}">Refund Amount</span></p>
         </div>
 
         <div class="message">
             The refund will be processed as AcmePlex Credit and will be available in your account within 24 hours. You can use this credit to book any future shows at our theatres.
         </div>
 
-        <center>
-            <a href="{{bookingUrl}}" class="btn">Book Another Show</a>
-        </center>
+        <div class="text-center">
+            <a th:href="${bookingUrl}" class="btn">Book Another Show</a>
+        </div>
     </div>
     <div class="footer">
         <p>Questions? We're here to help! Contact us at <a href="mailto:acmeplex.notify@gmail.com">acmeplex.notify@gmail.com</a></p>
