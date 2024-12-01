@@ -79,25 +79,29 @@ public class DataPopulationTest {
 
         theatreRepository.saveAll(Arrays.asList(theatre1, theatre2));
 
-        // Define the specific day: Dec 3, 2024
-        LocalDateTime startDate = LocalDateTime.of(2024, 12, 3, 10, 0); // First showtime on Dec 3, 2024 at 10:00 AM
-        List<Theatre> theatres = Arrays.asList(theatre1, theatre2);  // List of theatres
+        // Create showtimes: 3 showtimes per movie in both theatres for all of December
+        LocalDate startDate = LocalDate.of(2024, 12, 1); // Start from December 1
+        LocalDate endDate = LocalDate.of(2024, 12, 31); // End on December 31
+        List<Theatre> theatres = Arrays.asList(theatre1, theatre2); // List of theatres
         List<Movie> movies = Arrays.asList(movie1, movie2, movie3); // List of movies
 
-        // Create showtimes: 3 showtimes per movie in both theatres, all on Dec 3, 2024
         for (Movie movie : movies) {
             for (Theatre theatre : theatres) {
-                // Create 3 showtimes for each movie in each theatre
-                for (int i = 0; i < 3; i++) {
-                    Showtime showtime = new Showtime();
-                    // All showtimes will be on Dec 3, 2024 but spaced by 3 hours
-                    showtime.setStartTime(startDate.plusHours(i * 3));
-                    showtime.setMovie(movie);
-                    showtime.setTheatre(theatre);
-                    showtimeRepository.save(showtime);
+                // Loop through each day in December
+                for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+                    LocalDateTime showtimeStart = date.atTime(10, 0); // First showtime at 10:00 AM
 
-                    // Create 40 seats for each showtime
-                    createSeatsForShowtime(showtime, 40);
+                    // Create 3 showtimes per day, spaced by 3 hours
+                    for (int i = 0; i < 3; i++) {
+                        Showtime showtime = new Showtime();
+                        showtime.setStartTime(showtimeStart.plusHours(i * 3));
+                        showtime.setMovie(movie);
+                        showtime.setTheatre(theatre);
+                        showtimeRepository.save(showtime);
+
+                        // Create 40 seats for each showtime
+                        createSeatsForShowtime(showtime, 40);
+                    }
                 }
             }
         }
