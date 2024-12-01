@@ -11,6 +11,7 @@ import {
   Tag,
   Loader,
   ChevronLeft,
+  X,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
@@ -289,6 +290,12 @@ export default function ConfirmTickets() {
       animate="visible"
       variants={containerVariants}
     >
+      <Link
+        to="/"
+        className="absolute top-4 right-4 text-gray-400 hover:text-white"
+      >
+        <X size={24} />
+      </Link>
       <div className="max-w-7xl mx-auto">
         <motion.h1
           className="text-4xl font-light mb-8 text-center"

@@ -166,7 +166,7 @@ export default function SearchBar({ movies, theatres }: SearchProps) {
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            min={new Date().toISOString().split("T")[0]}
+            min="2024-12-01"
             disabled={!selectedItem}
             className={`w-full h-12 bg-black/20 border border-white/10 rounded-xl pl-12 pr-4 text-white focus:outline-none focus:border-primary-500/50 focus:bg-black/30 transition-all duration-300 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert ${
               !selectedItem ? "cursor-not-allowed opacity-50" : ""

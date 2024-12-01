@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -10,6 +8,7 @@ import {
   User,
   Check,
   Loader,
+  X,
 } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -18,6 +17,7 @@ import { z } from "zod";
 import api from "../api/apiConfig";
 import { useMovieContext } from "../context/MovieContext";
 import PacmanLoader from "react-spinners/PacmanLoader";
+import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
 
 const registerSchema = z
   .object({
@@ -64,6 +64,10 @@ export default function Register() {
   const acceptTerms = watch("acceptTerms");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  usePreventPageRefresh(
+    "Are you sure you want to leave? Your progress may not be saved."
+  );
 
   useEffect(() => {
     if (
@@ -207,6 +211,12 @@ export default function Register() {
       animate="visible"
       variants={containerVariants}
     >
+      <Link
+        to="/"
+        className="absolute top-4 right-4 text-gray-400 hover:text-white"
+      >
+        <X size={24} />
+      </Link>
       <div className="max-w-md mx-auto">
         <motion.h1
           className="text-4xl font-light mb-8 text-center"
@@ -457,7 +467,7 @@ export default function Register() {
 
             <div className="flex justify-between">
               <Link
-                to="/"
+                to="/confirmtickets"
                 className="text-primary-400 hover:text-primary-300 transition-colors"
               >
                 <button disabled={isSubmitting}>Cancel</button>

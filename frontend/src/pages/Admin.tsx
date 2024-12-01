@@ -186,7 +186,7 @@ export default function AdminPage() {
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-4xl font-light">Admin Dashboard</h1>
               <button
-                onClick={() => setIsLoggedIn(false)}
+                onClick={() => navigate("/")}
                 className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded-full transition-colors"
               >
                 <X size={24} />

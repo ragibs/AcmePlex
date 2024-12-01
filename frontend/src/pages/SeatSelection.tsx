@@ -17,6 +17,7 @@ import api from "../api/apiConfig";
 import PacmanLoader from "react-spinners/PacmanLoader";
 import { useMovieContext } from "../context/MovieContext";
 import usePreventPageRefresh from "../hooks/usePreventPageRefresh";
+import { date } from "zod";
 
 const TICKET_PRICE = 10;
 
@@ -160,7 +161,7 @@ export default function SeatSelection() {
   };
 
   const handlePrevious = () => {
-    navigate(-1);
+    navigate(`/searchbymovie/3/${state.date}`);
   };
 
   if (isLoading) {

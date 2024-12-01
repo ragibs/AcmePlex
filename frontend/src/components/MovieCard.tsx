@@ -35,7 +35,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
                 <Clock size={12} />
                 <span>{movie.duration} mins</span>
               </div>
-              <Link to={`/searchbymovie/${movie.id}/2024-12-03`}>
+              <Link to={`/searchbymovie/${movie.id}/2024-12-26`}>
                 <button className="w-full bg-primary-500 hover:bg-primary-600 text-white py-2 rounded-lg mt-2 text-sm transition-colors duration-300">
                   Book Now
                 </button>

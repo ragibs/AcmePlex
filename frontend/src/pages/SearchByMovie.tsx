@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Info, Clock, Calendar, ChevronRight } from "lucide-react";
+import { Info, Clock, Calendar, ChevronRight, ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../api/apiConfig";
@@ -238,6 +238,22 @@ export default function SearchByMovie() {
           </table>
         </div>
       </motion.div>
+      {/* Change Showtime Button */}
+
+      <motion.div
+        className="fixed bottom-8 left-8"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <button
+          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-colors flex items-center md:w-auto md:h-auto w-15 h-12 justify-center"
+          onClick={() => navigate("/")}
+        >
+          <ChevronLeft className="md:mr-2" size={20} />
+          <span className="hidden md:inline">Change Movie</span>
+        </button>
+      </motion.div>
 
       {/* Next: Seat Selection Button */}
       <motion.div
@@ -253,8 +269,8 @@ export default function SearchByMovie() {
           disabled={!selectedShowtime}
           onClick={handleNext}
         >
-          Next: Seat Selection
           <ChevronRight className="ml-2" size={20} />
+          <span className="hidden md:inline">Next: Seat Selection</span>
         </button>
       </motion.div>
     </motion.div>

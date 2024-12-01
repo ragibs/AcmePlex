@@ -94,7 +94,7 @@ export const Home = () => {
                       <span className="text-yellow-500">★</span>
                       <span className="text-xs">4.9/5.0</span>
                     </div>
-                    <Link to={`/searchbytheatre/${theatre.id}/2024-12-03`}>
+                    <Link to={`/searchbytheatre/${theatre.id}/2024-12-26`}>
                       <button className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-xs rounded-lg transition-colors">
                         View Showtimes
                       </button>
