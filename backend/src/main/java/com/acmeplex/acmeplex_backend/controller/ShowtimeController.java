@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The ShowtimeController handles operations related to showtimes and their associated seats.
+ * This includes retrieving available and booked seats for a specific showtime and sending a response showing a count
+ * of remaining available seats for the selected showtime.
+ */
 @RestController
 @CrossOrigin(origins = {"http://localhost:3000", "https://acme-plex.vercel.app/"})
 public class ShowtimeController {
@@ -23,7 +28,12 @@ public class ShowtimeController {
     @Autowired
     private SeatService seatService;
 
-    // Endpoint to get available and booked seats for a specific showtime
+    /**
+     * Retrieves available and booked seats for a specific showtime alongside a count of remaining available seats.
+     *
+     * @param showtimeId the ID of the showtime for which seats are being requested
+     * @return a {@link ResponseEntity} containing a map with seat information
+     */
     @GetMapping("/showtime/{showtimeId}/seats")
     public ResponseEntity<Map<String, Object>> getSeatsByShowtime(@PathVariable Long showtimeId) {
         Map<String, Object> seats = seatService.getSeatsByShowtime(showtimeId);

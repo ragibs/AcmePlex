@@ -14,6 +14,12 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * The CouponService class provides functionality to create, validate, and redeem coupons.
+ * Coupons are issued to users upon reservation cancellation and can be redeemed for discounts on purchases.
+ * This service manages coupon creation, status checks, and the redemption process,
+ * ensuring coupons are valid and not expired.
+ */
 @Service
 public class CouponService {
     @Autowired
@@ -31,6 +37,15 @@ public class CouponService {
         return couponCode;
     }
 
+    /**
+     * Retrieves the details of a coupon, including its status and value.
+     * The coupon must belong to the user identified by the provided email.
+     *
+     * @param email the email of the user associated with the couponCode
+     * @param couponCode the coupon code to look up
+     * @return the coupon information (status and value)
+     * @throws IllegalArgumentException if the coupon code is invalid or does not belong to the specified user
+     */
     public CouponInformation getCoupon(String email, String couponCode){
         Optional<Coupon> couponOptional = couponRepository.findByCouponCode(couponCode);
         if (couponOptional.isEmpty()){
@@ -43,6 +58,15 @@ public class CouponService {
         return new CouponInformation(coupon.getCouponStatus(), coupon.getCouponValue());
     }
 
+    /**
+     * Redeems a coupon for a user by updating the coupon's value and status.
+     * The coupon must be valid in order to redeem.
+     *
+     * @param email the email of the user associated with the couponCode
+     * @param couponCode the coupon code to redeem
+     * @param couponValue the value to redeem from the coupon
+     * @throws IllegalArgumentException if the coupon is invalid, expired, or already used
+     */
     public void redeemCoupon(String email, String couponCode, double couponValue){
         Coupon coupon = returnIfValid(email, couponCode);
 
@@ -64,6 +88,14 @@ public class CouponService {
         couponRepository.save(coupon);
     }
 
+    /**
+     * Validates a coupon by checking if it exists and belongs to the user identified by the provided email.
+     *
+     * @param email the email of the user associated with the couponCode
+     * @param couponCode the coupon code to validate
+     * @return the valid coupon if found
+     * @throws IllegalArgumentException if the coupon is invalid or does not belong to the specified user
+     */
     public Coupon returnIfValid(String email, String couponCode){
         Optional<Coupon> couponOptional = couponRepository.findByCouponCode(couponCode);
         if (couponOptional.isEmpty()){

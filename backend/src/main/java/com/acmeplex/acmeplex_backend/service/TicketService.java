@@ -14,6 +14,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Service class responsible for managing and processing ticket-related operations.
+ * This includes creating, updating, retrieving tickets as well reverting creation through delete in case of errors
+ */
 @Service
 public class TicketService {
 
@@ -29,6 +33,15 @@ public class TicketService {
         this.reservationRepository = reservationRepository;
     }
 
+    /**
+     * Creates a new ticket for a specific showtime, seat, and reservation.
+     * Marks the seat as booked and saves the ticket in the repository.
+     *
+     * @param showtimeID   The ID of the showtime for the ticket.
+     * @param seatID       The ID of the seat to be booked.
+     * @param reservationID The ID of the reservation associated with the ticket.
+     * @throws IllegalArgumentException if any of the provided IDs are invalid or if the seat is already booked.
+     */
     public void createTicket(Long showtimeID, Long seatID, Long reservationID){
         Showtime showtime = showtimeRepository.findById(showtimeID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid showtime ID"));
@@ -50,6 +63,14 @@ public class TicketService {
         ticketRepository.save(createdTicket);
     }
 
+    /**
+     * Updates the status of an existing ticket.
+     * The status can be updated to "active", "used", or "cancelled".
+     *
+     * @param ticketID      The ID of the ticket to be updated.
+     * @param updatedStatus The new status to be applied to the ticket.
+     * @throws IllegalArgumentException if the provided status is invalid.
+     */
     public void updateStatus(Long ticketID, String updatedStatus){
         Ticket ticket = ticketRepository.findById(ticketID)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Ticket ID"));
@@ -63,6 +84,13 @@ public class TicketService {
         ticketRepository.save(ticket);
     }
 
+    /**
+     * Retrieves the ticket associated with the provided ticket ID.
+     *
+     * @param ticketID The ID of the ticket to be retrieved.
+     * @return The ticket corresponding to the provided ID.
+     * @throws IllegalArgumentException if no ticket with the provided ID is found.
+     */
     public Ticket getTicket(Long ticketID){
         Optional<Ticket> ticket = ticketRepository.findById(ticketID);
         if (ticket.isEmpty()){
@@ -71,6 +99,11 @@ public class TicketService {
         return ticket.get();
     }
 
+    /**
+     * Deletes a list of tickets and unbooks the corresponding seats. Only to be used in creation logic when the request fails to maintain data integrity.
+     *
+     * @param tickets The list of tickets to be deleted.
+     */
     public void deleteTickets(List<Ticket> tickets){
         if (tickets.isEmpty()){
             return;
@@ -83,6 +116,11 @@ public class TicketService {
         }
     }
 
+    /**
+     * Cancels a set of tickets and unbooks the corresponding seats.
+     *
+     * @param tickets The set of tickets to be cancelled.
+     */
     public void cancelTickets(Set<Ticket> tickets){
         for (Ticket ticket: tickets){
             ticket.getSeat().setBooked(false);

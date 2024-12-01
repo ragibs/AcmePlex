@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+/**
+ * Service class for managing seats. Provides functionality to retrieve, check availability, and create seats.
+ */
 @Service
 public class SeatService {
     private final SeatRepository seatRepository;
@@ -22,6 +25,14 @@ public class SeatService {
     @Autowired
     private ShowtimeRepository showtimeRepository;
 
+    /**
+     * Retrieves the seats for a specific showtime and categorizes them into available and booked seats.
+     * Calculates the allowed ticket movie exclusivity status and booked seat count.
+     *
+     * @param showtimeId The ID of the showtime for which seats are being requested.
+     * @return A map containing the available seats, booked seats, and allowed bookable seat count for the showtime.
+     * @throws ShowtimeNotFoundException if no showtime is found with the provided ID.
+     */
     public Map<String, Object> getSeatsByShowtime(Long showtimeId) {
         // Find the showtime by ID
         Optional<Showtime> optionalShowtime = showtimeRepository.findById(showtimeId);
@@ -72,6 +83,13 @@ public class SeatService {
         return seatStatus;
     }
 
+    /**
+     * Checks if the given list of seats are available.
+     *
+     * @param seatIDS A list of seat IDs to be checked for availability.
+     * @return True if all the seats are available, false if any seat is booked.
+     * @throws IllegalArgumentException if any seat ID is invalid.
+     */
     public boolean checkSeatAvailability(List<Long> seatIDS){
         boolean seatsAvailable = true;
         for (Long seatID: seatIDS){
@@ -86,6 +104,13 @@ public class SeatService {
         return seatsAvailable;
     }
 
+    /**
+     * Creates a specified number of seats for a given showtime.
+     * The seats are initially marked as available and are assigned seat numbers in a row format.
+     *
+     * @param showtime The showtime for which seats are being created.
+     * @param seatCount The total number of seats to be created.
+     */
     public void createSeatsForShowtime(Showtime showtime, int seatCount) {
         int seatsPerRow = 10; // Number of seats per row
         char currentRow = 'A'; // Starting row letter

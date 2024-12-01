@@ -10,6 +10,10 @@ import org.thymeleaf.context.Context;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
+/**
+ * Service class to handle sending emails using JavaMailSender and Thymeleaf templates.
+ * This service supports sending both regular emails and announcements with custom templates.
+ */
 @Service
 public class EmailService {
 
@@ -19,6 +23,16 @@ public class EmailService {
     @Autowired
     private TemplateEngine templateEngine;
 
+    /**
+     * Sends an email to the specified recipient with the provided subject and content generated
+     * from a Thymeleaf template.
+     *
+     * @param to the recipient's email address
+     * @param subject the subject of the email
+     * @param templateName the name of the Thymeleaf template to process
+     * @param context the context to be used in the template (variables for dynamic content)
+     * @throws MessagingException if there is an error creating or sending the email
+     */
     public void sendEmail(String to, String subject, String templateName, Context context) throws MessagingException {
 
         MimeMessage message = mailSender.createMimeMessage();
@@ -32,6 +46,16 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    /**
+     * Sends an email announcement to the specified recipient, using a custom template for the
+     * announcement content. The announcement content is passed as a variable to the Thymeleaf template.
+     *
+     * @param email the recipient's email address
+     * @param subject the subject of the email
+     * @param announcement the content of the announcement to include in the email
+     * @param templateName the name of the Thymeleaf template to process for the email content
+     * @throws MessagingException if there is an error creating or sending the email
+     */
     public void sendEmailForAnnouncement(String email, String subject, String announcement, String templateName) throws MessagingException {
         // Context for Thymeleaf template
         Context context = new Context();

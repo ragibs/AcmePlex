@@ -14,6 +14,12 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The Announcement class implements the Subject interface to manage
+ * public and pre-public announcements for normal and registered users.
+ * This service is used to update registered users with pre public announcements as soon as a new movie is added
+ * while normal users receive a public announcement after the pre public period has passed
+ */
 @Service
 public class Announcement implements Subject{
     private List<Observer> registeredUsers = new ArrayList<>();
@@ -34,8 +40,9 @@ public class Announcement implements Subject{
 
     private String announcement;
 
-
-    // Attach all users (regular and registered) at the start
+    /**
+     * Initializes the announcement service by attaching all users as observers.
+     */
     @PostConstruct
     public void initialize() {
         List<User> allUsers = userRepository.findAll();  // Retrieve all users from the DB
@@ -48,7 +55,11 @@ public class Announcement implements Subject{
         }
     }
 
-
+    /**
+     * Attaches all observers to their corresponding notification list.
+     *
+     * @param observer the observer to be added
+     */
     @Override
     public void attach(Observer observer) {
         if (observer instanceof RegisteredUser) {
@@ -58,7 +69,11 @@ public class Announcement implements Subject{
         }
     }
 
-
+    /**
+     * Detaches an observer from the notification list.
+     *
+     * @param observer the observer to be removed
+     */
     @Override
     public void detach(Observer observer) {
         if (observer instanceof RegisteredUser) {
@@ -68,7 +83,12 @@ public class Announcement implements Subject{
         }
     }
 
-
+    /**
+     * Notifies all observers about an announcement.
+     * Registered users receive pre-public announcement, while regular users receive public announcements.
+     *
+     * @param announcement the announcement to be sent to observers
+     */
     @Override
     public void notifyObservers(String announcement) {
         // Notify registered users first (a couple of days earlier)
@@ -86,7 +106,12 @@ public class Announcement implements Subject{
     }
 
 
-    // Method to notify regular users after a delay
+    /**
+     * Notifies regular users after pre public announcement period has concluded.
+     *
+     * @param announcement the announcement to be sent
+     * @param minutesDelay the delay in minutes before notifying regular users
+     */
     private void notifyRegularUsersWithDelay(String announcement, int minutesDelay) {
         // Use a separate thread or scheduling service to delay the notification to regular users
         new Thread(() -> {

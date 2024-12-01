@@ -15,6 +15,10 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Optional;
 
+/**
+ * Service class responsible for managing registered users, including registration, password encoding,
+ * and user details retrieval for authentication purposes.
+ */
 @Service
 public class RegisteredUserService implements UserDetailsService {
     @Autowired
@@ -32,6 +36,16 @@ public class RegisteredUserService implements UserDetailsService {
 
     }
 
+    /**
+     * Registers a new registered user and their payment information.
+     * The user's password is encoded before saving. After the user is created, their payment information
+     * is associated with the user, and the user is attached to an announcement service.
+     *
+     * @param email the email address of the user to register
+     * @param password the password for the user which is encoded before being persisted in the database
+     * @param name the name of the registered user
+     * @param paymentInfo the payment information associated with the user
+     */
     public void registerRegisteredUser(String email, String password, String name, PaymentInfo paymentInfo){
         RegisteredUser registeredUser = new RegisteredUser();
         registeredUser.setEmail(email);
@@ -45,6 +59,14 @@ public class RegisteredUserService implements UserDetailsService {
         announcementService.attach(registeredUser);
     }
 
+    /**
+     * Loads a registered user by email for authentication.
+     * This method is used by Spring Security to authenticate the user.
+     *
+     * @param email the email of the user to load
+     * @return a UserDetails object for the given user
+     * @throws UsernameNotFoundException if no user is found with the given email
+     */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         RegisteredUser registeredUser = registeredUserRepository.findByEmail(email)

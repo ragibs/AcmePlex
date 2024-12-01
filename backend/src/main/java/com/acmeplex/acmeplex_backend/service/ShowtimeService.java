@@ -14,6 +14,10 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Service class responsible for managing and retrieving showtimes for movies in theatres.
+ * Provides functionality to get showtimes based on movie or theatre for a selected date.
+ */
 @Service
 public class ShowtimeService {
 
@@ -25,6 +29,15 @@ public class ShowtimeService {
     }
     @Autowired
     private MovieRepository movieRepository;
+
+    /**
+     * Retrieves the showtimes for a specific movie on a selected date.
+     *
+     * @param movieId The ID of the movie for which showtimes are being requested.
+     * @param selectedDate The selected date for which showtimes are being requested in the format "YYYY-MM-DD".
+     * @return A map containing movie details and showtimes for each theatre on the selected date.
+     * @throws IllegalArgumentException if the movie ID is invalid or the movie does not exist.
+     */
     public Map<String, Object> getShowtimesByMovieAndDate(Long movieId, String selectedDate) {
         // Parse the selected date string (e.g., "2024-11-18") to a LocalDate
         LocalDate date = LocalDate.parse(selectedDate);
@@ -94,7 +107,13 @@ public class ShowtimeService {
         return response;
     }
 
-
+    /**
+     * Retrieves the showtimes for a specific theatre on a selected date.
+     *
+     * @param theatreId The ID of the theatre for which showtimes are being requested.
+     * @param selectedDate The selected date for which showtimes are being requested in the format "YYYY-MM-DD".
+     * @return A map containing theatre details and a list of movies with their showtimes for the selected date.
+     */
     public Map<String, Object> getShowtimesByTheatreAndDate(Long theatreId, String selectedDate) {
         // Parse the selected date string (e.g., "2024-11-18") to a LocalDate
         LocalDate date = LocalDate.parse(selectedDate);
@@ -153,6 +172,12 @@ public class ShowtimeService {
         return response;
     }
 
+    /**
+     * Calculates the start and end time for an exclusive movie based on its showtime.
+     *
+     * @param movie The movie whose start and end times need to be calculated.
+     * @return A list containing the start and end time of the exclusive movie.
+     */
     public List<LocalDateTime> movieStartAndEnd(Movie movie){
             List<Showtime> showtimes = movie.getShowtimes();
             LocalDate date = showtimes.get(0).getStartTime().toLocalDate();
@@ -162,6 +187,13 @@ public class ShowtimeService {
             return dateList;
     }
 
+    /**
+     * Retrieves a specific showtime by its ID.
+     *
+     * @param showtimeId The ID of the showtime to be retrieved.
+     * @return The showtime corresponding to the given ID.
+     * @throws IllegalArgumentException if the showtime with the given ID does not exist.
+     */
     public Showtime getShowtimeById(Long showtimeId) {
         return showtimeRepository.findById(showtimeId)
                 .orElseThrow(() -> new IllegalArgumentException("Showtime with ID " + showtimeId + " not found"));

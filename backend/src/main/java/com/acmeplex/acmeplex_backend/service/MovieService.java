@@ -18,6 +18,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Service class responsible for managing movie-related operations,
+ * including retrieving movies, adding new movies, and sending movie announcements.
+ */
 @Service
 public class MovieService {
 
@@ -39,6 +43,12 @@ public class MovieService {
     @Autowired
     private TheatreRepository theatreRepository;
 
+    /**
+     * Retrieves all movies in the database that are not exclusive.
+     *
+     * @return a list of non-exclusive movies
+     * @throws IllegalArgumentException if no movies are found in the database
+     */
     public List<Movie> getAllMovies() {
         List<Movie> movies = movieRepository.findAll();
         if (movies.isEmpty()){
@@ -54,12 +64,25 @@ public class MovieService {
         return normalMovies;
     }
 
+    /**
+     * Retrieves a movie by its ID.
+     *
+     * @param id the ID of the movie
+     * @return the movie with the specified ID
+     * @throws MovieNotFoundException if no movie with the specified ID is found
+     */
     public Movie getMovieById(Long id) {
         return movieRepository.findById(id)
                 .orElseThrow(() -> new MovieNotFoundException(id));
     }
 
-    // Add a movie and notify all users (send emails)
+    /**
+     * Adds a new movie to the database and notifies users about the new movie via email.
+     * It also creates a default showtime and seats for the movie in the first available theatre.
+     *
+     * @param movie the movie to be added
+     * @return the saved movie
+     */
     public Movie addMovie(Movie movie) {
         Movie savedMovie = movieRepository.save(movie);
 
@@ -93,7 +116,14 @@ public class MovieService {
     }
 
 
-    // Send email for announcement (called from User or RegisteredUser)
+    /**
+     * Sends an email announcement about a new movie to the specified email address.
+     *
+     * @param email the recipient's email address
+     * @param subject the subject of the email
+     * @param announcement the content of the announcement
+     * @param templateName the name of the Thymeleaf template to process for the email body
+     */
     public void sendEmailForAnnouncement(String email, String subject, String announcement, String templateName) {
         try {
             emailService.sendEmailForAnnouncement(email, subject, announcement, templateName); // Call the EmailService to send the email
@@ -102,6 +132,12 @@ public class MovieService {
         }
     }
 
+    /**
+     * Retrieves all exclusive movies from the database.
+     *
+     * @return a list of exclusive movies
+     * @throws IllegalArgumentException if no movies are found in the database
+     */
     public List<Movie> returnExclusiveMovies(){
         List<Movie> movies = movieRepository.findAll();
         if (movies.isEmpty()){
