@@ -64,6 +64,8 @@ export default function SearchBar({ movies, theatres }: SearchProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <div
       id="search-container"
@@ -166,7 +168,8 @@ export default function SearchBar({ movies, theatres }: SearchProps) {
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            min="2024-12-01"
+            min={today}
+            max="2025-12-31"
             disabled={!selectedItem}
             className={`w-full h-12 bg-black/20 border border-white/10 rounded-xl pl-12 pr-4 text-white focus:outline-none focus:border-primary-500/50 focus:bg-black/30 transition-all duration-300 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert ${
               !selectedItem ? "cursor-not-allowed opacity-50" : ""
@@ -203,6 +206,10 @@ export default function SearchBar({ movies, theatres }: SearchProps) {
           </button>
         )}
       </div>
+      <p className=" text-center mt-2 text-sm text-gray-300">
+        📅 Due to high demand, only showtimes on Sundays are available until
+        December 2025. Thank you for understanding!
+      </p>
     </div>
   );
 }
